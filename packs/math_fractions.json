@@ -1,0 +1,808 @@
+{
+  "id": "math_fractions",
+  "title": "Fractions",
+  "subject": "Mathematics (Class 5–6)",
+  "strategy": "prereq_graph",
+  "status": "approved",
+  "description": "Diagnoses gaps by probing prerequisite skills (equivalent fractions, LCM, HCF…) whenever a student gets something wrong.",
+  "config": {
+    "mastery_threshold": 0.95,
+    "p_init": 0.3,
+    "p_learn": 0.15,
+    "p_slip": 0.1,
+    "p_guess": 0.2,
+    "alert_after_failures": 3,
+    "reveal_answer_on_fail": true
+  },
+  "activities": {
+    "L_MEANING": {
+      "title": "What a fraction means",
+      "body": "A fraction describes **equal parts of a whole**.\n\nIn **3/4**, the bottom number (the **denominator**, 4) says the whole is cut into 4 equal parts. The top number (the **numerator**, 3) says we take 3 of them.\n\n**Example:** A pizza is cut into 8 equal slices and you eat 3. You ate **3/8** of the pizza.\n\nA fraction can be bigger than 1: **5/4** means five quarters — one whole and one more quarter."
+    },
+    "L_FACTORS": {
+      "title": "Factors and the HCF",
+      "body": "A **factor** of a number divides it exactly. Factors of 12: 1, 2, 3, 4, 6, 12.\n\nThe **Highest Common Factor (HCF)** of two numbers is the biggest number that is a factor of both.\n\n**Example:** Factors of 12 → 1, 2, 3, 4, 6, 12. Factors of 18 → 1, 2, 3, 6, 9, 18. Common: 1, 2, 3, 6. **HCF = 6**."
+    },
+    "L_MULTIPLES": {
+      "title": "Multiples and the LCM",
+      "body": "A **multiple** of a number is in its times table. Multiples of 4: 4, 8, 12, 16, 20 …\n\nThe **Lowest Common Multiple (LCM)** is the smallest number in both times tables.\n\n**Example:** Multiples of 4 → 4, 8, **12**, 16. Multiples of 6 → 6, **12**, 18. **LCM = 12**.\n\nThe LCM of two denominators is the best *common denominator*."
+    },
+    "L_EQUIV": {
+      "title": "Equivalent fractions",
+      "body": "Multiply (or divide) the top **and** the bottom by the same number and the fraction keeps its value.\n\n**Example:** 2/3 = (2×4)/(3×4) = **8/12**.\n\nTo find the missing number in 3/5 = ?/20: the bottom went 5 → 20, that's ×4, so the top is 3×4 = **12**."
+    },
+    "L_SIMPLIFY": {
+      "title": "Simplifying fractions",
+      "body": "A fraction is in **simplest form** when the top and bottom have no common factor except 1.\n\n**Method:** divide top and bottom by their **HCF**.\n\n**Example:** 18/24. HCF of 18 and 24 is 6. 18÷6 = 3, 24÷6 = 4 → **3/4**."
+    },
+    "L_MIXED": {
+      "title": "Mixed numbers and improper fractions",
+      "body": "An **improper fraction** has top ≥ bottom, like 7/3. A **mixed number** writes it as wholes plus a fraction: **2 1/3**.\n\n**Improper → mixed:** 7 ÷ 3 = 2 remainder 1 → 2 1/3.\n\n**Mixed → improper:** 2 1/3 = (2×3 + 1)/3 = **7/3**."
+    },
+    "L_ADD_LIKE": {
+      "title": "Adding & subtracting with the same denominator",
+      "body": "When the denominators are the **same**, add (or subtract) the numerators and **keep the denominator**.\n\n**Example:** 2/9 + 4/9 = (2+4)/9 = 6/9 → simplify → **2/3**.\n\n⚠️ Never add the denominators: 2/9 + 4/9 is **not** 6/18."
+    },
+    "L_COMPARE": {
+      "title": "Comparing fractions",
+      "body": "To compare fractions, rewrite them with a **common denominator** (use the LCM), then compare the numerators.\n\n**Example:** Which is bigger, 3/4 or 5/6? LCM(4, 6) = 12. 3/4 = 9/12 and 5/6 = 10/12. So **5/6 is bigger**.\n\nShortcut: with the same numerator, the smaller denominator wins (1/3 > 1/5)."
+    },
+    "L_ADD_UNLIKE": {
+      "title": "Adding & subtracting with different denominators",
+      "body": "1. Find a **common denominator** — the LCM of the denominators.\n2. Rewrite each fraction as an **equivalent fraction** with that denominator.\n3. Add or subtract the numerators.\n4. **Simplify**.\n\n**Example:** 1/4 + 1/6. LCM(4, 6) = 12. 1/4 = 3/12, 1/6 = 2/12. 3/12 + 2/12 = **5/12**."
+    },
+    "L_MULTIPLY": {
+      "title": "Multiplying fractions",
+      "body": "Multiply the tops, multiply the bottoms, then simplify.\n\n**Example:** 2/3 × 3/4 = (2×3)/(3×4) = 6/12 = **1/2**.\n\nA whole number is a fraction over 1: 3 × 2/5 = 3/1 × 2/5 = **6/5**."
+    },
+    "L_WORD": {
+      "title": "Fraction word problems",
+      "body": "1. Read carefully: what is the **whole**? What are the **parts**?\n2. Decide the operation: *together / in total* → add; *left / how much more* → subtract; *of* → multiply.\n3. Solve and **simplify**, then check the answer makes sense.\n\n**Example:** Riya drank 1/3 of a bottle in the morning and 1/4 in the evening. How much did she drink? 1/3 + 1/4 = 4/12 + 3/12 = **7/12** of the bottle."
+    }
+  },
+  "item_sets": {
+    "F_MEANING": {
+      "title": "What a fraction means",
+      "level": "Understand",
+      "activity": "L_MEANING",
+      "links": [],
+      "items": [
+        {
+          "type": "fraction",
+          "prompt": "A cake is cut into 8 equal pieces. You eat 3 pieces. What fraction of the cake did you eat?",
+          "answer": "3/8",
+          "form": "simplest",
+          "hint": "Bottom number = how many equal pieces in total.",
+          "explanation": "3 out of 8 equal pieces = 3/8.",
+          "id": "F_MEANING.1"
+        },
+        {
+          "type": "fraction",
+          "prompt": "A chocolate bar has 10 equal squares. Ravi eats 7. What fraction is left?",
+          "answer": "3/10",
+          "form": "simplest",
+          "hint": "First find how many squares are left.",
+          "explanation": "10 − 7 = 3 squares left out of 10 → 3/10.",
+          "id": "F_MEANING.2"
+        },
+        {
+          "type": "mcq",
+          "prompt": "In the fraction 5/9, what does the 9 tell you?",
+          "options": [
+            "The whole is split into 9 equal parts",
+            "We take 9 parts",
+            "There are 9 wholes",
+            "Nothing — it's just a label"
+          ],
+          "answer": "The whole is split into 9 equal parts",
+          "hint": "The denominator is the bottom number.",
+          "id": "F_MEANING.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "A class has 12 students and 5 of them are girls. What fraction of the class are girls?",
+          "answer": "5/12",
+          "form": "simplest",
+          "hint": "Part over whole.",
+          "explanation": "5 girls out of 12 students → 5/12.",
+          "id": "F_MEANING.4"
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which fraction is equal to one whole?",
+          "options": [
+            "4/4",
+            "1/4",
+            "4/1",
+            "0/4"
+          ],
+          "answer": "4/4",
+          "hint": "Taking all the parts gives the whole.",
+          "id": "F_MEANING.5"
+        },
+        {
+          "type": "fraction",
+          "prompt": "A rope is cut into 6 equal pieces. 2 pieces are used. What fraction of the rope is used? (simplest form)",
+          "answer": "1/3",
+          "form": "simplest",
+          "hint": "Write 2/6, then simplify.",
+          "explanation": "2/6 = 1/3.",
+          "id": "F_MEANING.6"
+        }
+      ]
+    },
+    "M_FACTORS": {
+      "title": "Factors and HCF",
+      "level": "Remember",
+      "activity": "L_FACTORS",
+      "links": [],
+      "items": [
+        {
+          "type": "numeric",
+          "prompt": "What is the HCF of 12 and 18?",
+          "answer": 6,
+          "hint": "List the factors of each number and find the biggest one they share.",
+          "explanation": "The biggest number dividing both 12 and 18 is 6.",
+          "id": "M_FACTORS.1"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the HCF of 8 and 20?",
+          "answer": 4,
+          "hint": "List the factors of each number and find the biggest one they share.",
+          "explanation": "The biggest number dividing both 8 and 20 is 4.",
+          "id": "M_FACTORS.2"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the HCF of 15 and 25?",
+          "answer": 5,
+          "hint": "List the factors of each number and find the biggest one they share.",
+          "explanation": "The biggest number dividing both 15 and 25 is 5.",
+          "id": "M_FACTORS.3"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the HCF of 14 and 21?",
+          "answer": 7,
+          "hint": "List the factors of each number and find the biggest one they share.",
+          "explanation": "The biggest number dividing both 14 and 21 is 7.",
+          "id": "M_FACTORS.4"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the HCF of 16 and 24?",
+          "answer": 8,
+          "hint": "List the factors of each number and find the biggest one they share.",
+          "explanation": "The biggest number dividing both 16 and 24 is 8.",
+          "id": "M_FACTORS.5"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the HCF of 9 and 27?",
+          "answer": 9,
+          "hint": "List the factors of each number and find the biggest one they share.",
+          "explanation": "The biggest number dividing both 9 and 27 is 9.",
+          "id": "M_FACTORS.6"
+        }
+      ]
+    },
+    "M_MULTIPLES": {
+      "title": "Multiples and LCM",
+      "level": "Remember",
+      "activity": "L_MULTIPLES",
+      "links": [],
+      "items": [
+        {
+          "type": "numeric",
+          "prompt": "What is the LCM of 4 and 6?",
+          "answer": 12,
+          "hint": "Write out the 4 times table and the 6 times table and find the first number in both.",
+          "explanation": "The smallest number in both times tables is 12.",
+          "id": "M_MULTIPLES.1"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the LCM of 3 and 5?",
+          "answer": 15,
+          "hint": "Write out the 3 times table and the 5 times table and find the first number in both.",
+          "explanation": "The smallest number in both times tables is 15.",
+          "id": "M_MULTIPLES.2"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the LCM of 6 and 8?",
+          "answer": 24,
+          "hint": "Write out the 6 times table and the 8 times table and find the first number in both.",
+          "explanation": "The smallest number in both times tables is 24.",
+          "id": "M_MULTIPLES.3"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the LCM of 2 and 7?",
+          "answer": 14,
+          "hint": "Write out the 2 times table and the 7 times table and find the first number in both.",
+          "explanation": "The smallest number in both times tables is 14.",
+          "id": "M_MULTIPLES.4"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the LCM of 4 and 10?",
+          "answer": 20,
+          "hint": "Write out the 4 times table and the 10 times table and find the first number in both.",
+          "explanation": "The smallest number in both times tables is 20.",
+          "id": "M_MULTIPLES.5"
+        },
+        {
+          "type": "numeric",
+          "prompt": "What is the LCM of 6 and 9?",
+          "answer": 18,
+          "hint": "Write out the 6 times table and the 9 times table and find the first number in both.",
+          "explanation": "The smallest number in both times tables is 18.",
+          "id": "M_MULTIPLES.6"
+        }
+      ]
+    },
+    "F_EQUIV": {
+      "title": "Equivalent fractions",
+      "level": "Apply",
+      "activity": "L_EQUIV",
+      "links": [
+        "F_MEANING"
+      ],
+      "items": [
+        {
+          "type": "numeric",
+          "prompt": "Fill in the missing number: 2/3 = ?/12",
+          "answer": 8,
+          "hint": "What do you multiply 3 by to get 12? Do the same to the top.",
+          "explanation": "3 × 4 = 12, so 2 × 4 = 8.",
+          "id": "F_EQUIV.1"
+        },
+        {
+          "type": "numeric",
+          "prompt": "Fill in the missing number: 3/5 = ?/20",
+          "answer": 12,
+          "hint": "What do you multiply 5 by to get 20? Do the same to the top.",
+          "explanation": "5 × 4 = 20, so 3 × 4 = 12.",
+          "id": "F_EQUIV.2"
+        },
+        {
+          "type": "numeric",
+          "prompt": "Fill in the missing number: 1/4 = ?/12",
+          "answer": 3,
+          "hint": "What do you multiply 4 by to get 12? Do the same to the top.",
+          "explanation": "4 × 3 = 12, so 1 × 3 = 3.",
+          "id": "F_EQUIV.3"
+        },
+        {
+          "type": "numeric",
+          "prompt": "Fill in the missing number: 5/6 = ?/18",
+          "answer": 15,
+          "hint": "What do you multiply 6 by to get 18? Do the same to the top.",
+          "explanation": "6 × 3 = 18, so 5 × 3 = 15.",
+          "id": "F_EQUIV.4"
+        },
+        {
+          "type": "numeric",
+          "prompt": "Fill in the missing number: 3/7 = ?/21",
+          "answer": 9,
+          "hint": "What do you multiply 7 by to get 21? Do the same to the top.",
+          "explanation": "7 × 3 = 21, so 3 × 3 = 9.",
+          "id": "F_EQUIV.5"
+        },
+        {
+          "type": "numeric",
+          "prompt": "Fill in the missing number: 4/9 = ?/27",
+          "answer": 12,
+          "hint": "What do you multiply 9 by to get 27? Do the same to the top.",
+          "explanation": "9 × 3 = 27, so 4 × 3 = 12.",
+          "id": "F_EQUIV.6"
+        }
+      ]
+    },
+    "F_SIMPLIFY": {
+      "title": "Simplifying fractions",
+      "level": "Apply",
+      "activity": "L_SIMPLIFY",
+      "links": [
+        "F_EQUIV",
+        "M_FACTORS"
+      ],
+      "items": [
+        {
+          "type": "fraction",
+          "prompt": "Write 18/24 in simplest form.",
+          "answer": "3/4",
+          "form": "simplest",
+          "hint": "Divide top and bottom by their HCF.",
+          "explanation": "HCF(18, 24) = 6. 18÷6 = 3, 24÷6 = 4 → 3/4.",
+          "id": "F_SIMPLIFY.1"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 10/15 in simplest form.",
+          "answer": "2/3",
+          "form": "simplest",
+          "hint": "Divide top and bottom by their HCF.",
+          "explanation": "HCF(10, 15) = 5. 10÷5 = 2, 15÷5 = 3 → 2/3.",
+          "id": "F_SIMPLIFY.2"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 12/16 in simplest form.",
+          "answer": "3/4",
+          "form": "simplest",
+          "hint": "Divide top and bottom by their HCF.",
+          "explanation": "HCF(12, 16) = 4. 12÷4 = 3, 16÷4 = 4 → 3/4.",
+          "id": "F_SIMPLIFY.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 14/35 in simplest form.",
+          "answer": "2/5",
+          "form": "simplest",
+          "hint": "Divide top and bottom by their HCF.",
+          "explanation": "HCF(14, 35) = 7. 14÷7 = 2, 35÷7 = 5 → 2/5.",
+          "id": "F_SIMPLIFY.4"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 20/28 in simplest form.",
+          "answer": "5/7",
+          "form": "simplest",
+          "hint": "Divide top and bottom by their HCF.",
+          "explanation": "HCF(20, 28) = 4. 20÷4 = 5, 28÷4 = 7 → 5/7.",
+          "id": "F_SIMPLIFY.5"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 9/12 in simplest form.",
+          "answer": "3/4",
+          "form": "simplest",
+          "hint": "Divide top and bottom by their HCF.",
+          "explanation": "HCF(9, 12) = 3. 9÷3 = 3, 12÷3 = 4 → 3/4.",
+          "id": "F_SIMPLIFY.6"
+        }
+      ]
+    },
+    "F_MIXED": {
+      "title": "Mixed numbers and improper fractions",
+      "level": "Apply",
+      "activity": "L_MIXED",
+      "links": [
+        "F_MEANING"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "prompt": "Write 7/3 as a mixed number (e.g. 2 1/3).",
+          "answer": "2 1/3",
+          "accepted": [
+            "2 1/3"
+          ],
+          "hint": "How many times does 3 go into 7, and what is left over?",
+          "explanation": "7 ÷ 3 = 2 remainder 1 → 2 1/3.",
+          "id": "F_MIXED.1"
+        },
+        {
+          "type": "text",
+          "prompt": "Write 11/4 as a mixed number (e.g. 2 1/3).",
+          "answer": "2 3/4",
+          "accepted": [
+            "2 3/4"
+          ],
+          "hint": "How many times does 4 go into 11, and what is left over?",
+          "explanation": "11 ÷ 4 = 2 remainder 3 → 2 3/4.",
+          "id": "F_MIXED.2"
+        },
+        {
+          "type": "text",
+          "prompt": "Write 9/2 as a mixed number (e.g. 2 1/3).",
+          "answer": "4 1/2",
+          "accepted": [
+            "4 1/2"
+          ],
+          "hint": "How many times does 2 go into 9, and what is left over?",
+          "explanation": "9 ÷ 2 = 4 remainder 1 → 4 1/2.",
+          "id": "F_MIXED.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 2 3/5 as an improper fraction.",
+          "answer": "13/5",
+          "form": "improper",
+          "hint": "Multiply the whole number by the denominator, then add the numerator.",
+          "explanation": "(2×5 + 3)/5 = 13/5.",
+          "id": "F_MIXED.4"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 1 5/6 as an improper fraction.",
+          "answer": "11/6",
+          "form": "improper",
+          "hint": "Multiply the whole number by the denominator, then add the numerator.",
+          "explanation": "(1×6 + 5)/6 = 11/6.",
+          "id": "F_MIXED.5"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Write 3 1/4 as an improper fraction.",
+          "answer": "13/4",
+          "form": "improper",
+          "hint": "Multiply the whole number by the denominator, then add the numerator.",
+          "explanation": "(3×4 + 1)/4 = 13/4.",
+          "id": "F_MIXED.6"
+        }
+      ]
+    },
+    "F_ADD_LIKE": {
+      "title": "Add & subtract: same denominator",
+      "level": "Apply",
+      "activity": "L_ADD_LIKE",
+      "links": [
+        "F_MEANING",
+        "F_SIMPLIFY"
+      ],
+      "items": [
+        {
+          "type": "fraction",
+          "prompt": "2/9 + 4/9 = ?  (simplest form)",
+          "answer": "2/3",
+          "form": "simplest",
+          "hint": "Same denominator: work with the numerators only and keep the denominator.",
+          "explanation": "2 + 4 = 6, so 6/9 = 2/3.",
+          "id": "F_ADD_LIKE.1"
+        },
+        {
+          "type": "fraction",
+          "prompt": "3/8 + 1/8 = ?  (simplest form)",
+          "answer": "1/2",
+          "form": "simplest",
+          "hint": "Same denominator: work with the numerators only and keep the denominator.",
+          "explanation": "3 + 1 = 4, so 4/8 = 1/2.",
+          "id": "F_ADD_LIKE.2"
+        },
+        {
+          "type": "fraction",
+          "prompt": "7/10 - 3/10 = ?  (simplest form)",
+          "answer": "2/5",
+          "form": "simplest",
+          "hint": "Same denominator: work with the numerators only and keep the denominator.",
+          "explanation": "7 - 3 = 4, so 4/10 = 2/5.",
+          "id": "F_ADD_LIKE.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "5/12 + 1/12 = ?  (simplest form)",
+          "answer": "1/2",
+          "form": "simplest",
+          "hint": "Same denominator: work with the numerators only and keep the denominator.",
+          "explanation": "5 + 1 = 6, so 6/12 = 1/2.",
+          "id": "F_ADD_LIKE.4"
+        },
+        {
+          "type": "fraction",
+          "prompt": "9/14 - 2/14 = ?  (simplest form)",
+          "answer": "1/2",
+          "form": "simplest",
+          "hint": "Same denominator: work with the numerators only and keep the denominator.",
+          "explanation": "9 - 2 = 7, so 7/14 = 1/2.",
+          "id": "F_ADD_LIKE.5"
+        },
+        {
+          "type": "fraction",
+          "prompt": "1/6 + 3/6 = ?  (simplest form)",
+          "answer": "2/3",
+          "form": "simplest",
+          "hint": "Same denominator: work with the numerators only and keep the denominator.",
+          "explanation": "1 + 3 = 4, so 4/6 = 2/3.",
+          "id": "F_ADD_LIKE.6"
+        }
+      ]
+    },
+    "F_COMPARE": {
+      "title": "Comparing fractions",
+      "level": "Analyze",
+      "activity": "L_COMPARE",
+      "links": [
+        "F_EQUIV",
+        "M_MULTIPLES"
+      ],
+      "items": [
+        {
+          "type": "mcq",
+          "prompt": "Which is bigger: 3/4 or 5/6?",
+          "options": [
+            "3/4",
+            "5/6",
+            "They are equal"
+          ],
+          "answer": "5/6",
+          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
+          "explanation": "LCM(4, 6) = 12: 3/4 = 9/12, 5/6 = 10/12. So 5/6 is bigger.",
+          "id": "F_COMPARE.1"
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which is bigger: 2/3 or 3/5?",
+          "options": [
+            "2/3",
+            "3/5",
+            "They are equal"
+          ],
+          "answer": "2/3",
+          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
+          "explanation": "LCM(3, 5) = 15: 2/3 = 10/15, 3/5 = 9/15. So 2/3 is bigger.",
+          "id": "F_COMPARE.2"
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which is bigger: 5/8 or 7/12?",
+          "options": [
+            "5/8",
+            "7/12",
+            "They are equal"
+          ],
+          "answer": "5/8",
+          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
+          "explanation": "LCM(8, 12) = 24: 5/8 = 15/24, 7/12 = 14/24. So 5/8 is bigger.",
+          "id": "F_COMPARE.3"
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which is bigger: 4/9 or 1/2?",
+          "options": [
+            "4/9",
+            "1/2",
+            "They are equal"
+          ],
+          "answer": "1/2",
+          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
+          "explanation": "LCM(9, 2) = 18: 4/9 = 8/18, 1/2 = 9/18. So 1/2 is bigger.",
+          "id": "F_COMPARE.4"
+        },
+        {
+          "type": "mcq",
+          "prompt": "Which is bigger: 3/10 or 2/7?",
+          "options": [
+            "3/10",
+            "2/7",
+            "They are equal"
+          ],
+          "answer": "3/10",
+          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
+          "explanation": "LCM(10, 7) = 70: 3/10 = 21/70, 2/7 = 20/70. So 3/10 is bigger.",
+          "id": "F_COMPARE.5"
+        },
+        {
+          "type": "free_text",
+          "prompt": "Explain how you would decide which is bigger: 2/3 or 3/4.",
+          "rubric": "Full marks if the student converts to a common denominator (e.g. 8/12 vs 9/12) or uses decimals/cross-multiplication correctly and concludes 3/4 is bigger. Partial if method right but conclusion missing.",
+          "keywords": [
+            "denominator",
+            "12",
+            "common",
+            "bigger",
+            "larger",
+            "3/4"
+          ],
+          "min_words": 8,
+          "hint": "Talk about a common denominator.",
+          "id": "F_COMPARE.6"
+        }
+      ]
+    },
+    "F_ADD_UNLIKE": {
+      "title": "Add & subtract: different denominators",
+      "level": "Apply",
+      "activity": "L_ADD_UNLIKE",
+      "links": [
+        "F_ADD_LIKE",
+        "F_EQUIV",
+        "M_MULTIPLES"
+      ],
+      "items": [
+        {
+          "type": "fraction",
+          "prompt": "1/4 + 1/6 = ?  (simplest form)",
+          "answer": "5/12",
+          "form": "simplest",
+          "hint": "Find the LCM of 4 and 6 first, and rewrite both fractions.",
+          "explanation": "LCM(4, 6) = 12. 1/4 = 3/12, 1/6 = 2/12. 3 + 2 = 5 → 5/12.",
+          "id": "F_ADD_UNLIKE.1"
+        },
+        {
+          "type": "fraction",
+          "prompt": "2/3 + 1/5 = ?  (simplest form)",
+          "answer": "13/15",
+          "form": "simplest",
+          "hint": "Find the LCM of 3 and 5 first, and rewrite both fractions.",
+          "explanation": "LCM(3, 5) = 15. 2/3 = 10/15, 1/5 = 3/15. 10 + 3 = 13 → 13/15.",
+          "id": "F_ADD_UNLIKE.2"
+        },
+        {
+          "type": "fraction",
+          "prompt": "3/4 - 1/6 = ?  (simplest form)",
+          "answer": "7/12",
+          "form": "simplest",
+          "hint": "Find the LCM of 4 and 6 first, and rewrite both fractions.",
+          "explanation": "LCM(4, 6) = 12. 3/4 = 9/12, 1/6 = 2/12. 9 - 2 = 7 → 7/12.",
+          "id": "F_ADD_UNLIKE.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "5/6 - 1/4 = ?  (simplest form)",
+          "answer": "7/12",
+          "form": "simplest",
+          "hint": "Find the LCM of 6 and 4 first, and rewrite both fractions.",
+          "explanation": "LCM(6, 4) = 12. 5/6 = 10/12, 1/4 = 3/12. 10 - 3 = 7 → 7/12.",
+          "id": "F_ADD_UNLIKE.4"
+        },
+        {
+          "type": "fraction",
+          "prompt": "1/2 + 2/7 = ?  (simplest form)",
+          "answer": "11/14",
+          "form": "simplest",
+          "hint": "Find the LCM of 2 and 7 first, and rewrite both fractions.",
+          "explanation": "LCM(2, 7) = 14. 1/2 = 7/14, 2/7 = 4/14. 7 + 4 = 11 → 11/14.",
+          "id": "F_ADD_UNLIKE.5"
+        },
+        {
+          "type": "fraction",
+          "prompt": "7/8 - 1/3 = ?  (simplest form)",
+          "answer": "13/24",
+          "form": "simplest",
+          "hint": "Find the LCM of 8 and 3 first, and rewrite both fractions.",
+          "explanation": "LCM(8, 3) = 24. 7/8 = 21/24, 1/3 = 8/24. 21 - 8 = 13 → 13/24.",
+          "id": "F_ADD_UNLIKE.6"
+        }
+      ]
+    },
+    "F_MULTIPLY": {
+      "title": "Multiplying fractions",
+      "level": "Apply",
+      "activity": "L_MULTIPLY",
+      "links": [
+        "F_SIMPLIFY"
+      ],
+      "items": [
+        {
+          "type": "fraction",
+          "prompt": "2/3 × 3/4 = ?  (simplest form)",
+          "answer": "1/2",
+          "form": "simplest",
+          "hint": "Multiply top × top and bottom × bottom, then simplify.",
+          "explanation": "(2×3)/(3×4) = 6/12 → 1/2.",
+          "id": "F_MULTIPLY.1"
+        },
+        {
+          "type": "fraction",
+          "prompt": "1/2 × 4/5 = ?  (simplest form)",
+          "answer": "2/5",
+          "form": "simplest",
+          "hint": "Multiply top × top and bottom × bottom, then simplify.",
+          "explanation": "(1×4)/(2×5) = 4/10 → 2/5.",
+          "id": "F_MULTIPLY.2"
+        },
+        {
+          "type": "fraction",
+          "prompt": "3/5 × 5/6 = ?  (simplest form)",
+          "answer": "1/2",
+          "form": "simplest",
+          "hint": "Multiply top × top and bottom × bottom, then simplify.",
+          "explanation": "(3×5)/(5×6) = 15/30 → 1/2.",
+          "id": "F_MULTIPLY.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "4/7 × 1/2 = ?  (simplest form)",
+          "answer": "2/7",
+          "form": "simplest",
+          "hint": "Multiply top × top and bottom × bottom, then simplify.",
+          "explanation": "(4×1)/(7×2) = 4/14 → 2/7.",
+          "id": "F_MULTIPLY.4"
+        },
+        {
+          "type": "fraction",
+          "prompt": "3 × 2/9 = ?  (simplest form)",
+          "answer": "2/3",
+          "form": "simplest",
+          "hint": "Multiply top × top and bottom × bottom, then simplify.",
+          "explanation": "(3×2)/(1×9) = 6/9 → 2/3.",
+          "id": "F_MULTIPLY.5"
+        },
+        {
+          "type": "fraction",
+          "prompt": "5/8 × 2/5 = ?  (simplest form)",
+          "answer": "1/4",
+          "form": "simplest",
+          "hint": "Multiply top × top and bottom × bottom, then simplify.",
+          "explanation": "(5×2)/(8×5) = 10/40 → 1/4.",
+          "id": "F_MULTIPLY.6"
+        }
+      ]
+    },
+    "F_WORD": {
+      "title": "Fraction word problems",
+      "level": "Apply",
+      "activity": "L_WORD",
+      "links": [
+        "F_ADD_UNLIKE",
+        "F_MULTIPLY"
+      ],
+      "items": [
+        {
+          "type": "fraction",
+          "prompt": "Riya drank 1/3 of a bottle of water in the morning and 1/4 in the evening. What fraction of the bottle did she drink altogether?",
+          "answer": "7/12",
+          "form": "simplest",
+          "hint": "'Altogether' means add.",
+          "explanation": "Answer: 7/12.",
+          "id": "F_WORD.1"
+        },
+        {
+          "type": "fraction",
+          "prompt": "A ribbon is 3/4 m long. Asha cuts off 1/3 m. How long is the ribbon now (in m)?",
+          "answer": "5/12",
+          "form": "simplest",
+          "hint": "'Cuts off' means subtract.",
+          "explanation": "Answer: 5/12.",
+          "id": "F_WORD.2"
+        },
+        {
+          "type": "fraction",
+          "prompt": "2/5 of the 30 students in a class walk to school. How many students walk? (whole number)",
+          "answer": "12",
+          "form": "simplest",
+          "hint": "'of' means multiply.",
+          "explanation": "Answer: 12.",
+          "id": "F_WORD.3"
+        },
+        {
+          "type": "fraction",
+          "prompt": "A farmer plants rice on 1/2 of his field and wheat on 1/3. What fraction of the field is left for vegetables?",
+          "answer": "1/6",
+          "form": "simplest",
+          "hint": "The whole field is 1. Subtract both parts.",
+          "explanation": "Answer: 1/6.",
+          "id": "F_WORD.4"
+        },
+        {
+          "type": "fraction",
+          "prompt": "Each glass holds 2/3 of a cup of milk. How many cups are needed to fill 6 glasses?",
+          "answer": "4",
+          "form": "simplest",
+          "hint": "Multiply the amount per glass by the number of glasses.",
+          "explanation": "Answer: 4.",
+          "id": "F_WORD.5"
+        },
+        {
+          "type": "free_text",
+          "prompt": "Make up your own short word problem where you would ADD two fractions with different denominators, and solve it.",
+          "rubric": "Full marks if the problem genuinely requires adding two fractions with different denominators and the solution (with common denominator) is correct.",
+          "keywords": [
+            "/"
+          ],
+          "min_words": 15,
+          "hint": "Think of sharing food or pouring water.",
+          "id": "F_WORD.6"
+        }
+      ]
+    }
+  },
+  "units": [
+    {
+      "id": "fractions",
+      "title": "Working with fractions",
+      "sets": [
+        "F_ADD_LIKE",
+        "F_COMPARE",
+        "F_ADD_UNLIKE",
+        "F_MULTIPLY",
+        "F_MIXED",
+        "F_WORD"
+      ]
+    }
+  ]
+}

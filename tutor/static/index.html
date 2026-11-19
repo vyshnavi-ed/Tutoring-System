@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutor</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="top">
+  <h1>Tutor</h1>
+  <span class="muted small" id="who"></span>
+  <nav><a href="#" id="nav-home">Subjects</a><a href="/teacher">Teacher dashboard →</a></nav>
+</header>
+<main id="app"></main>
+
+<script src="/static/common.js"></script>
+<script>
+const app = document.getElementById("app");
+let student = localStorage.getItem("tutor_student") || "";
+let packId = null, packs = [];
+let feedbackShown = null;   // last graded result, shown above the next action
+
+document.getElementById("nav-home").onclick = e => { e.preventDefault(); home(); };
+
+function setWho() {
+  document.getElementById("who").textContent = student ? `Signed in as ${student}` : "";
+}
+
+async function home() {
+  packId = null; feedbackShown = null; setWho();
+  packs = (await api.get("/api/packs")).filter(p => p.status === "approved");
+  app.innerHTML = `
+    <div class="panel" style="margin-bottom:20px">
+      <label class="small muted">Your name</label>
+      <div class="row" style="margin-top:6px">
+        <input type="text" id="name" placeholder="e.g. Asha" value="${esc(student)}" style="max-width:320px">
+      </div>
+    </div>
+    <h2 style="font-size:18px">Choose a subject</h2>
+    <div class="grid">${packs.map(p => `
+      <div class="panel pack-card" data-id="${p.id}">
+        <span class="muted small">${esc(p.subject)}</span>
+        <h3>${esc(p.title)}</h3>
+        <div><span class="badge">${STRATEGY_LABEL[p.strategy] || p.strategy}</span></div>
+        <p class="small muted" style="margin:6px 0 0">${esc(p.description)}</p>
+      </div>`).join("")}
+    </div>`;
+  app.querySelectorAll(".pack-card").forEach(el => el.onclick = () => {
+    const n = document.getElementById("name").value.trim();
+    if (!n) { document.getElementById("name").focus(); return; }
+    student = n; localStorage.setItem("tutor_student", n); setWho();
+    start(el.dataset.id);
+  });
+}
+
+async function start(id) {
+  packId = id; feedbackShown = null;
+  render(await api.get(`/api/session/${encodeURIComponent(student)}/${id}`));
+}
+
+const base = () => `/api/session/${encodeURIComponent(student)}/${packId}`;
+
+function progressHtml(p) {
+  const pack = packs.find(x => x.id === packId) || {};
+  if (!p) return "";
+  const bits = [`<span><b>${esc(pack.title || "")}</b></span>`];
+  if (pack.strategy === "level_descent") {
+    bits.push(`<span>Unit ${p.unit_index > p.unit_count ? p.unit_count : p.unit_index}/${p.unit_count}: ${esc(p.unit)}</span>`);
+    bits.push(`<span>Question set ${p.step}/${p.step_count}</span>`);
+    if (p.remediation_depth) bits.push(`<span class="badge warn">reviewing ${p.remediation_depth} level${p.remediation_depth > 1 ? "s" : ""} down</span>`);
+  } else if (pack.strategy === "prereq_graph") {
+    bits.push(`<span>Skill ${p.goal_index}/${p.goal_count}${p.skill ? ": " + esc(p.skill) : ""}</span>`);
+    if (p.mastery != null) bits.push(`<span>Mastery <span class="bar"><span style="width:${Math.round(p.mastery * 100)}%"></span></span> ${Math.round(p.mastery * 100)}%</span>`);
+    if (p.remediation_depth) bits.push(`<span class="badge warn">fixing a building block</span>`);
+  } else if (pack.strategy === "spaced_repetition") {
+    bits.push(`<span>Words started ${p.learning}/${p.total}</span><span>Well known ${p.mature}</span>`);
+    if (p.due_again_soon) bits.push(`<span class="badge warn">${p.due_again_soon} coming back soon</span>`);
+  }
+  return `<div class="progress">${bits.join("")}</div>`;
+}
+
+function feedbackHtml(r) {
+  if (!r) return "";
+  const lines = [];
+  if (r.feedback) lines.push(`<div class="line">${mdi(r.feedback)}</div>`);
+  if (r.hint) lines.push(`<div class="line"><b>Hint:</b> ${mdi(r.hint)}</div>`);
+  if (r.answer !== undefined) lines.push(`<div class="line"><b>Answer:</b> ${esc(r.answer)}</div>`);
+  if (r.explanation) lines.push(`<div class="line"><b>Why:</b> ${mdi(r.explanation)}</div>`);
+  return `<div class="feedback ${r.passed ? "ok" : "bad"}"><h4>${r.passed ? "✓ Correct" : "✗ Not quite"}</h4>${lines.join("")}</div>`;
+}
+
+function render(a) {
+  const prog = progressHtml(a.progress);
+  const fb = feedbackShown ? feedbackHtml(feedbackShown) : "";
+  feedbackShown = null;
+  let body = "";
+  if (a.type === "activity") {
+    body = `<div class="panel">${fb}<div class="card-kind" style="margin-top:${fb ? 16 : 0}px">Lesson</div>
+      ${a.reason ? `<div class="reason">${esc(a.reason)}</div>` : ""}
+      <h2 style="margin-top:0">${esc(a.title)}</h2><div class="md">${md(a.body)}</div>
+      <div class="actions"><button class="primary" id="go">Continue</button></div></div>`;
+  } else if (a.type === "message") {
+    body = `<div class="panel message ${a.tone}">${fb}<div class="md" style="margin-top:${fb ? 14 : 0}px">${md(a.text)}</div>
+      <div class="actions"><button class="primary" id="go">Continue</button></div></div>`;
+  } else if (a.type === "item") {
+    body = `<div class="panel">${fb}<div class="card-kind" style="margin-top:${fb ? 16 : 0}px">Question</div>
+      <div class="prompt md">${md(a.prompt)}</div>${inputHtml(a)}
+      <div class="actions"><button class="primary" id="submit">Check answer</button><span class="muted small" id="status"></span></div></div>`;
+  } else if (a.type === "done") {
+    body = `<div class="panel">${fb}<h2>🎉 ${esc(a.text)}</h2>
+      <div class="actions"><button id="back">Back to subjects</button>
+      ${a.resumable ? `<button id="skip" title="Prototype helper: pretend a day has passed">⏩ Skip ahead 1 day (demo)</button>` : ""}
+      <button class="link" id="reset">Start this subject over</button></div></div>`;
+  }
+  app.innerHTML = prog + body;
+  wire(a);
+}
+
+function inputHtml(a) {
+  if (a.item_type === "mcq") {
+    return `<div class="options">${a.options.map((o, i) =>
+      `<label class="option" data-v="${esc(o)}"><input type="radio" name="opt" value="${i}"><span class="md">${md(o)}</span></label>`).join("")}</div>`;
+  }
+  if (a.item_type === "code_python") return `<textarea class="code" id="ans" spellcheck="false">${esc(a.starter || "")}</textarea>`;
+  if (a.item_type === "free_text") return `<textarea id="ans" rows="4" placeholder="Write your answer…"></textarea>`;
+  const ph = { fraction: "e.g. 3/4", numeric: "a number", text: "type your answer" }[a.item_type] || "";
+  return `<input type="text" id="ans" autocomplete="off" placeholder="${ph}">`;
+}
+
+function wire(a) {
+  const go = document.getElementById("go");
+  if (go) { go.onclick = async () => { go.disabled = true; render(await api.post(base() + "/continue")); }; go.focus(); }
+  const back = document.getElementById("back");
+  if (back) back.onclick = home;
+  const skip = document.getElementById("skip");
+  if (skip) skip.onclick = async () => render(await api.post(base() + "/advance", { days: 1 }));
+  const reset = document.getElementById("reset");
+  if (reset) reset.onclick = async () => { if (confirm("Erase your progress in this subject?")) { await api.post(base() + "/reset"); start(packId); } };
+
+  if (a.type !== "item") return;
+  let selected = null;
+  app.querySelectorAll(".option").forEach(el => el.onclick = () => {
+    app.querySelectorAll(".option").forEach(x => x.classList.remove("sel"));
+    el.classList.add("sel"); el.querySelector("input").checked = true; selected = el.dataset.v;
+  });
+  const ans = document.getElementById("ans");
+  if (ans) {
+    ans.focus();
+    if (ans.tagName === "INPUT") ans.onkeydown = e => { if (e.key === "Enter") submit.click(); };
+    if (ans.classList.contains("code")) ans.onkeydown = e => {
+      if (e.key === "Tab") { e.preventDefault(); const s = ans.selectionStart; ans.setRangeText("    ", s, ans.selectionEnd, "end"); }
+    };
+  }
+  const submit = document.getElementById("submit");
+  submit.onclick = async () => {
+    const response = a.item_type === "mcq" ? selected : ans.value;
+    if (response == null || String(response).trim() === "") { document.getElementById("status").textContent = "Please answer first."; return; }
+    submit.disabled = true;
+    document.getElementById("status").textContent = a.item_type === "code_python" ? "Running your code…" : "Checking…";
+    const r = await api.post(base() + "/answer", { response });
+    feedbackShown = r.result;
+    render(r.action);
+  };
+}
+
+home();
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutor — Teacher dashboard</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="top">
+  <h1>Teacher dashboard</h1>
+  <nav><a href="/">← Student view</a></nav>
+</header>
+<main>
+  <div class="tabs">
+    <button data-tab="alerts" class="active">Alerts <span id="alert-count"></span></button>
+    <button data-tab="students">Students</button>
+    <button data-tab="packs">Content packs</button>
+  </div>
+  <div id="view"></div>
+</main>
+<script src="/static/common.js"></script>
+<script>
+const view = document.getElementById("view");
+let packs = [];
+const packTitle = id => (packs.find(p => p.id === id) || {}).title || id;
+
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => show(b.dataset.tab));
+
+async function show(tab) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  packs = await api.get("/api/packs");
+  refreshCount();
+  ({ alerts, students, packs: packsTab })[tab]();
+}
+
+async function refreshCount() {
+  const a = await api.get("/api/teacher/alerts");
+  document.getElementById("alert-count").textContent = a.length ? `(${a.length})` : "";
+}
+
+// ---------------------------------------------------------------- alerts
+async function alerts() {
+  const list = await api.get("/api/teacher/alerts");
+  if (!list.length) { view.innerHTML = `<div class="panel empty">No open alerts. Students who get stuck will show up here.</div>`; return; }
+  view.innerHTML = list.map(a => `
+    <div class="panel alert-card ${a.kind}" style="margin-bottom:12px">
+      <div class="row">
+        <span class="badge ${a.kind === "stuck" ? "warn" : ""}">${a.kind === "stuck" ? "Stuck" : "Answer to review"}</span>
+        <b>${esc(a.student_id)}</b><span class="muted small">${esc(packTitle(a.pack_id))} · ${ago(a.ts)}</span>
+        <span style="margin-left:auto"></span>
+        <button class="link" data-open="${esc(a.student_id)}|${esc(a.pack_id)}">View path</button>
+        <button data-resolve="${a.id}">Resolve</button>
+      </div>
+      <div style="margin-top:8px">${esc(a.message)}</div>
+      ${a.kind === "review" ? `<div class="small muted" style="margin-top:8px">${md(a.details.prompt)}</div>
+        <pre class="resp">${esc(a.details.response)}</pre>
+        <div class="small muted">Provisional score: ${a.details.provisional_score}</div>` : ""}
+    </div>`).join("");
+  view.querySelectorAll("[data-resolve]").forEach(b => b.onclick = async () => {
+    const note = prompt("Optional note (what you did / the right grade):", "") ?? null;
+    if (note === null) return;
+    await api.post(`/api/teacher/alerts/${b.dataset.resolve}/resolve`, { note });
+    alerts(); refreshCount();
+  });
+  view.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { const [s, p] = b.dataset.open.split("|"); detail(s, p); });
+}
+
+// ---------------------------------------------------------------- students
+async function students() {
+  const rows = await api.get("/api/teacher/sessions");
+  if (!rows.length) { view.innerHTML = `<div class="panel empty">No student sessions yet.</div>`; return; }
+  view.innerHTML = `<div class="panel"><table>
+    <tr><th>Student</th><th>Subject</th><th>Strategy</th><th>Attempts</th><th>Correct</th><th>Alerts</th><th>Last active</th></tr>
+    ${rows.map(r => {
+      const p = packs.find(x => x.id === r.pack) || {};
+      return `<tr class="click" data-s="${esc(r.student)}" data-p="${esc(r.pack)}">
+        <td><b>${esc(r.student)}</b></td><td>${esc(p.title || r.pack)}</td>
+        <td><span class="badge grey">${STRATEGY_LABEL[p.strategy] || ""}</span></td>
+        <td>${r.attempts}</td><td>${r.attempts ? Math.round(100 * r.correct / r.attempts) + "%" : "—"}</td>
+        <td>${r.open_alerts ? `<span class="badge warn">${r.open_alerts}</span>` : ""}</td>
+        <td class="muted">${ago(r.updated)}</td></tr>`;
+    }).join("")}</table></div>`;
+  view.querySelectorAll("tr.click").forEach(tr => tr.onclick = () => detail(tr.dataset.s, tr.dataset.p));
+}
+
+async function detail(student, packId) {
+  const [d, pack] = await Promise.all([
+    api.get(`/api/teacher/sessions/${encodeURIComponent(student)}/${packId}`),
+    api.get(`/api/packs/${packId}`),
+  ]);
+  const setTitle = id => (pack.item_sets[id] || {}).title || id;
+  const setLevel = id => (pack.item_sets[id] || {}).level || "";
+  const s = d.summary || {};
+  let snap = "";
+  if (s.strategy === "prereq_graph") {
+    snap = `<table><tr><th>Skill</th><th>Level</th><th>Mastery</th></tr>${Object.entries(s.mastery).map(([k, v]) => `
+      <tr><td>${esc(setTitle(k))}</td><td class="muted">${esc(setLevel(k))}</td>
+      <td><span class="bar"><span style="width:${Math.round(v * 100)}%;background:${v >= s.threshold ? "var(--ok)" : "var(--accent)"}"></span></span> ${Math.round(v * 100)}%</td></tr>`).join("")}</table>`;
+  } else if (s.strategy === "spaced_repetition") {
+    snap = `<table><tr><th>Word</th><th>Box</th><th>Reviews</th><th>Lapses</th></tr>${Object.entries(s.cards).map(([k, c]) => `
+      <tr><td>${esc(setTitle(k))}</td><td>${c.box}</td><td>${c.reviews}</td><td>${c.lapses ? `<span class="badge ${c.lapses >= 3 ? "bad" : "warn"}">${c.lapses}</span>` : 0}</td></tr>`).join("")}</table>
+      <p class="small muted">Not started: ${s.not_started.map(setTitle).join(", ") || "—"}</p>`;
+  } else if (s.strategy === "level_descent") {
+    snap = `<div class="kv"><div class="muted">Completed units</div><div>${s.completed_units.join(", ") || "—"}</div>
+      <div class="muted">Current position</div><div>${s.position.length ? s.position.map(f => `${esc(f.set)} <span class="muted">(${esc(f.level)})</span>`).join(" → ") : "between sets"}</div></div>`;
+  }
+
+  // merge attempts + events into one path
+  const items = [];
+  d.attempts.forEach(a => items.push({ ts: a.ts, cls: a.passed ? "pass" : "fail",
+    html: `${a.passed ? "✓" : "✗"} <b>${esc(setTitle(a.set_id))}</b> <span class="muted">${esc(setLevel(a.set_id))} · ${esc(a.item_type)} · score ${a.score}</span>
+           ${a.item_type === "code_python" || a.item_type === "free_text" ? `<details><summary class="small muted">answer</summary><pre class="resp">${esc(a.response)}</pre></details>` : `<span class="mono muted"> “${esc(a.response.slice(0, 60))}”</span>`}` }));
+  const EV = {
+    activity: e => ({ cls: "teach", html: `📖 Lesson shown: ${esc((pack.activities[e.activity_id] || {}).title || e.activity_id)}${e.reason ? ` <span class="muted">— ${esc(e.reason)}</span>` : ""}` }),
+    descend: e => ({ cls: "teach", html: `↓ Descend from <b>${esc(e.from_set)}</b> to ${e.to_sets.map(esc).join(", ")} <span class="muted">(${esc(e.level)})</span>` }),
+    ascend: e => ({ cls: "teach", html: `↑ Back up to <b>${esc(e.to_set)}</b> (different item)` }),
+    restudy: e => ({ cls: "teach", html: `↺ Re-study at lowest level: ${esc(setTitle(e.set_id))}` }),
+    diagnose: e => ({ cls: "teach", html: `🔍 Diagnosing <b>${esc(setTitle(e.set_id))}</b> — probing ${e.probing.map(setTitle).map(esc).join(", ")}` }),
+    gap_found: e => ({ cls: "fail", html: `⚠ Gap found: <b>${esc(setTitle(e.set_id))}</b>` }),
+    probe_pass: e => ({ cls: "pass", html: `Prerequisite OK: ${esc(setTitle(e.set_id))}` }),
+    mastered: e => ({ cls: "pass", html: `★ Mastered <b>${esc(setTitle(e.set_id))}</b>` }),
+    return: e => ({ cls: "teach", html: `↩ Return to ${esc(setTitle(e.set_id))}` }),
+    reteach: e => ({ cls: "teach", html: `↺ Re-teach ${esc(setTitle(e.set_id))}` }),
+    goal_start: e => ({ cls: "", html: `Goal: <b>${esc(setTitle(e.set_id))}</b>` }),
+    unit_start: e => ({ cls: "", html: `Unit started: <b>${esc(e.unit)}</b>` }),
+    unit_complete: e => ({ cls: "pass", html: `Unit complete: <b>${esc(e.unit)}</b>` }),
+    new_card: e => ({ cls: "teach", html: `New word: <b>${esc(setTitle(e.set_id))}</b>` }),
+    promote: e => ({ cls: "pass", html: `${esc(setTitle(e.set_id))} → box ${e.box}` }),
+    lapse: e => ({ cls: "fail", html: `${esc(setTitle(e.set_id))} lapsed (lapses: ${e.lapses})` }),
+    clock_advanced: e => ({ cls: "", html: `⏩ Clock advanced ${e.days} day(s)` }),
+    teacher_alert: e => ({ cls: "alert", html: `🔔 Teacher alerted: ${esc(e.message)}` }),
+    session_start: e => ({ cls: "", html: `Session started (${esc(STRATEGY_LABEL[e.strategy] || e.strategy)})` }),
+  };
+  d.events.forEach(e => { const f = EV[e.kind]; if (f) items.push({ ts: e.ts, ...f(e.payload) }); });
+  items.sort((a, b) => a.ts - b.ts);
+
+  view.innerHTML = `
+    <button class="link" id="back">← All students</button>
+    <div class="panel" style="margin:10px 0 16px">
+      <h2 style="margin-top:0">${esc(student)} · ${esc(pack.title)}</h2>
+      <p class="muted small" style="margin-top:-8px">${STRATEGY_LABEL[pack.strategy]}</p>${snap}
+    </div>
+    <div class="panel"><h3 style="margin-top:0">Learning path</h3>
+      <ul class="timeline">${items.map(i => `<li class="${i.cls}">${i.html}</li>`).join("")}</ul></div>`;
+  document.getElementById("back").onclick = students;
+}
+
+// ---------------------------------------------------------------- packs
+async function packsTab() {
+  view.innerHTML = `
+    <div class="panel" style="margin-bottom:16px">
+      <div class="row"><b>Add a subject with AI</b><span style="margin-left:auto"></span><button id="reload">Reload pack files</button></div>
+      <p class="small muted" style="margin-bottom:6px">Generate a draft pack from a short brief (needs <code>ANTHROPIC_API_KEY</code>), then click “Reload”, review it here and approve:</p>
+      <pre class="resp">python -m tutor.authoring generate --strategy prereq_graph --title "Decimals" \\
+    --subject "Mathematics (Class 6)" --brief "place value, comparing, adding decimals" \\
+    --out packs/math_decimals.json</pre>
+    </div>
+    ${packs.map(p => `
+      <div class="panel" style="margin-bottom:12px">
+        <div class="row"><b>${esc(p.title)}</b><span class="badge grey">${STRATEGY_LABEL[p.strategy] || p.strategy}</span>
+          <span class="badge ${p.status === "approved" ? "ok" : "warn"}">${p.status}</span>
+          <span class="muted small">${p.sets} sets · ${p.items} items</span><span style="margin-left:auto"></span>
+          <button class="link" data-view="${p.id}">Review content</button>
+          <button data-approve="${p.id}" data-to="${p.status !== "approved"}">${p.status === "approved" ? "Unpublish" : "Approve"}</button></div>
+        <div id="pv-${p.id}"></div>
+      </div>`).join("")}`;
+  document.getElementById("reload").onclick = async () => { await api.post("/api/packs/reload"); show("packs"); };
+  view.querySelectorAll("[data-approve]").forEach(b => b.onclick = async () => {
+    try { await api.post(`/api/packs/${b.dataset.approve}/approve`, { approved: b.dataset.to === "true" }); show("packs"); }
+    catch (e) { alert("Cannot approve: " + e.message); }
+  });
+  view.querySelectorAll("[data-view]").forEach(b => b.onclick = () => reviewPack(b.dataset.view));
+}
+
+async function reviewPack(id) {
+  const box = document.getElementById("pv-" + id);
+  if (box.innerHTML) { box.innerHTML = ""; return; }
+  const [pack, v] = await Promise.all([api.get(`/api/packs/${id}`), api.get(`/api/packs/${id}/validate`)]);
+  const val = `<div style="margin:12px 0">${v.errors.length ? `<span class="badge bad">${v.errors.length} errors</span>` : `<span class="badge ok">valid</span>`}
+    ${v.warnings.length ? `<span class="badge warn">${v.warnings.length} warnings</span>` : ""}
+    ${[...v.errors, ...v.warnings].map(m => `<div class="small">• ${esc(m)}</div>`).join("")}</div>`;
+  const units = pack.units.map(u => `<div class="small"><b>${esc(u.title || u.id)}</b>: ${u.sets.map(esc).join(" → ")}</div>`).join("");
+  const sets = Object.entries(pack.item_sets).map(([sid, s]) => `
+    <div class="set-block">
+      <div class="row"><b>${esc(sid)}</b> ${esc(s.title || "")} ${s.level ? `<span class="badge grey">${esc(s.level)}</span>` : ""}</div>
+      ${(s.links || []).length ? `<div class="small muted">${pack.strategy === "prereq_graph" ? "Prerequisites" : "If failed → "}: ${s.links.map(esc).join(", ")}</div>` : ""}
+      <details><summary class="small">${s.items.length} items</summary>
+        ${s.items.map(it => `<div class="small" style="margin:8px 0 8px 12px"><span class="badge grey">${esc(it.type)}</span>
+          <div class="md">${md(it.prompt)}</div>
+          ${it.options ? `<div class="muted">Options: ${it.options.map(esc).join(" | ")}</div>` : ""}
+          ${it.answer !== undefined ? `<div>Answer: <b>${esc(it.answer)}</b></div>` : ""}
+          ${it.rubric ? `<div>Rubric: ${esc(it.rubric)}</div>` : ""}
+          ${it.tests ? `<pre class="resp">${it.tests.map(esc).join("\n")}</pre>` : ""}</div>`).join("")}
+      </details>
+    </div>`).join("");
+  box.innerHTML = val + `<div style="margin-bottom:10px">${units}</div>` + sets;
+}
+
+show("alerts");
+</script>
+</body>
+</html>
