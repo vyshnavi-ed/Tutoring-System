@@ -6,8 +6,10 @@ DemoLLM gives canned replies so the screens can be tried without an API key.
 """
 from __future__ import annotations
 
+import base64
 import os
 
+from .photos import SCREEN_PROMPT, parse_screen
 from .skills import ALL, LEVELS, STAGES
 
 SKILL_ENUM = {"type": "string", "enum": ALL}
@@ -80,6 +82,16 @@ class AnthropicLLM:
                 return dict(block.input)
         return parse_text_reply("".join(getattr(b, "text", "") for b in msg.content))
 
+    def screen_image(self, jpeg: bytes) -> dict:
+        """Check a photo before it is stored. Returns {"category", "reason"}."""
+        msg = self.client.messages.create(
+            model=self.model, max_tokens=200,
+            messages=[{"role": "user", "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+                                             "data": base64.b64encode(jpeg).decode()}},
+                {"type": "text", "text": SCREEN_PROMPT}]}])
+        return parse_screen("".join(getattr(b, "text", "") for b in msg.content))
+
 
 def parse_text_reply(text: str) -> dict:
     """The model answered in plain text instead of calling the tool: use JSON if present, else the text."""
@@ -107,9 +119,18 @@ class DemoLLM:
         "Great plan. Go and check, then come back and tell me what you find!",
     ]
 
+    def screen_image(self, jpeg: bytes) -> dict:
+        # Demo mode can't check photos, so it refuses them (nothing unchecked is ever stored).
+        # TUTOR_DEMO_ACCEPT_PHOTOS=1 is for developers testing the screens only.
+        if os.environ.get("TUTOR_DEMO_ACCEPT_PHOTOS") == "1":
+            return {"category": "object", "reason": "demo: not really checked"}
+        return {"category": "unchecked", "reason": "demo mode has no AI to check photos"}
+
     def respond(self, system: str, messages: list[dict]) -> dict:
         n = sum(1 for m in messages if m["role"] == "user")
         last = messages[-1]["content"] if messages else ""
+        if isinstance(last, list):
+            last = " ".join(b.get("text", "") for b in last if b.get("type") == "text")
         if "[session start]" in last:
             return {"reply": "Hi! Seen anything interesting today? (Demo mode: replies are canned until an AI key is added.)"}
         if "learner wants to stop" in last:

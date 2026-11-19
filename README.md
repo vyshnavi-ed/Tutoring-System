@@ -64,6 +64,12 @@ per turn, by text or voice (browser speech; best in Chrome).
   - phone numbers, emails and addresses are removed before storing or sending
   - possible disclosures (hurt, bullied, unsafe, very upset) are flagged for a person to review, always get a
     "tell a trusted adult" reply, and are never used for skill assessment
+- **Photos:** children can add a photo (📷 button, paste or drag-and-drop). Each photo is resized, stripped of hidden
+  data such as GPS location, and checked by the AI *before* it is stored. Only plants and objects are kept; photos of
+  people, animals, personal details or anything inappropriate are refused and never saved (inappropriate ones raise a
+  wellbeing alert). The Buddy can see kept photos but never describes them: the child describes first, and the Buddy
+  only uses the photo to point their attention. Photos need a separate parental consent. To allow insects and other
+  creatures later, change `ALLOWED_CATEGORIES` in `tutor/buddy/photos.py`.
 - **Consent:** nothing is stored until a parent or guardian agrees on the consent screen. This is a *prototype*
   checkbox; production needs verifiable parental consent.
 - **Teacher dashboard → Science Buddy:** a class grid of skill levels, each learner's evidence, level changes with

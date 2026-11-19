@@ -268,7 +268,8 @@ async function buddyDetail(student) {
       ${i.self_assessment ? `<div class="small">Self-assessment — easiest: ${esc(i.self_assessment.easiest || "—")}; hardest: ${esc(i.self_assessment.hardest || "—")}</div>` : ""}</div>`).join("");
   const sess = d.sessions.map(s => `<details style="margin:8px 0"><summary>Session ${s.id} · ${new Date(s.started * 1000).toLocaleString()} · focus: <b>${esc(name[s.focus] || s.focus)}</b>${s.closed ? "" : " · (open)"}</summary>
       <div style="margin:8px 0 0 10px">${s.turns.filter(t => t.role !== "event").map(t => `<div class="small" style="margin:6px 0">
-        <b>${t.role === "tutor" ? "Buddy" : esc(student)}:</b> ${esc(t.text)}
+        <b>${t.role === "tutor" ? "Buddy" : esc(student)}:</b> ${t.meta.photo ? `<br><img src="/api/buddy/photo/${t.meta.photo}" style="max-height:160px;border-radius:8px;margin:4px 0"><br>` : ""}${esc(t.text)}
+        ${t.meta.photo_refused ? `<span class="badge warn">photo refused: ${esc(t.meta.photo_refused)} (not stored)</span>` : ""}
         ${t.role === "tutor" && t.meta.ladder_step ? `<span class="badge grey">ladder step ${t.meta.ladder_step}</span>` : ""}
         ${t.meta.skill_named ? `<span class="badge ok">named: ${esc(t.meta.skill_named)}</span>` : ""}
         ${t.meta.regenerated ? `<span class="badge bad" title="The first draft was blocked">blocked draft: ${esc(t.meta.regenerated)}</span>` : ""}

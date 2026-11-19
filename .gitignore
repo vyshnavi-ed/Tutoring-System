@@ -5,3 +5,4 @@ tutor.db
 *.db
 .env
 .venv/
+photos/

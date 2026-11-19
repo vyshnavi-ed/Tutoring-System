@@ -207,3 +207,15 @@ Rules that apply whichever option is chosen:
 - When a question can't be investigated at home ("What's inside the sun?"), the tutor acknowledges it, then looks for a nearby part that can be tested ("What do you notice about how warm different things get in sunlight?").
 - A small bank of ready "noticing starters" (shadows through the day, ants and food, ice melting, seeds sprouting, cloth drying) covers days when the learner arrives with no question.
 - If curriculum alignment matters later, topics can be tagged to syllabus units (for example NCERT grade 6 to 8 Science chapters) after the fact, without restricting what learners explore.
+
+## Amendment: photos (agreed November 2026)
+
+Learners may send photos, and the tutor can see them. This changes the assumption that "the tutor cannot see what the learner sees", so the pedagogy is adjusted to keep the observing with the child:
+
+- **The child describes first.** If a photo arrives without the child saying what they see, the tutor asks them to describe it before anything else.
+- **The tutor never describes, names or identifies what is in a photo**, and never states details from it as facts. It may use the photo only to point the child's attention ("In your photo, look near the bottom of the stem. What do you notice there?") or to suggest a comparison photo later.
+- Choosing to record with a photo, or a series of photos over time, counts as evidence for communicating.
+
+**What photos are allowed:** only plants and inanimate objects. Every photo is checked before anything is stored. Photos showing people, animals, personal information (names, documents, screenshots), or anything inappropriate are refused with a kind message and never saved. Inappropriate photos also raise a wellbeing alert for human review. A hand holding the item is allowed. Photos that can't be checked (for example, no connection) are refused.
+
+**Privacy:** photos are resized, and all hidden metadata, including GPS location, is removed before checking and storing. Photos need a separate parental consent. Saved photos are visible to the learner and their teacher.
