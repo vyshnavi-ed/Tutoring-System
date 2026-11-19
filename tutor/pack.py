@@ -6,7 +6,8 @@ A pack is strategy-agnostic in shape:
       "id": "math_fractions",
       "title": "Fractions",
       "subject": "Mathematics",
-      "strategy": "prereq_graph",          # which tutoring algorithm runs it
+      "strategy": "prereq_graph",          # which tutoring algorithm runs it (what comes next)
+      "pedagogy": "inquiry",               # how each skill is taught (see tutor/pedagogy.py)
       "status": "approved",                # "draft" packs are hidden from students
       "config": {...},                     # strategy / grading parameters
       "activities": {"ACT_ID": {"title": ..., "body": "markdown"}},
@@ -42,6 +43,7 @@ class Pack:
         self.title: str = data.get("title", self.id)
         self.subject: str = data.get("subject", "")
         self.strategy: str = data["strategy"]
+        self.pedagogy: str = data.get("pedagogy", "direct")
         self.status: str = data.get("status", "draft")
         self.config: dict = {**DEFAULT_CONFIG, **data.get("config", {})}
         self.activities: dict = data.get("activities", {})

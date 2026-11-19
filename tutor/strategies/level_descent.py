@@ -32,7 +32,8 @@ class LevelDescent(Strategy):
             unit = units[state["unit_idx"]]
             if state["intro_shown"] != state["unit_idx"]:
                 state["intro_shown"] = state["unit_idx"]
-                self.queue_activity(state, unit.get("activity"), f"New unit: {unit.get('title', unit['id'])}")
+                self.teach(state, unit["sets"][0], "intro", f"New unit: {unit.get('title', unit['id'])}",
+                           activity_id=unit.get("activity"))
                 ctx.log("unit_start", unit=unit["id"])
                 return None
             if state["top_idx"] >= len(unit["sets"]):
@@ -59,14 +60,12 @@ class LevelDescent(Strategy):
             lower = self.pack.sets[links[0]]
             level = lower.get("level", "an easier level")
             ctx.log("descend", from_set=set_id, to_sets=links, level=level)
-            self.queue_activity(state, lower.get("activity"),
-                                f"Let's step back to {level.lower()} and build up from there.")
+            self.teach(state, links[0], "descend", f"Let's step back to {level.lower()} and build up from there.")
             stack.append({"set": links[0], "phase": "ask", "child": 0})
         else:
             # lowest level: re-study ("memorise") and retry; engine handles the teacher alert
             ctx.log("restudy", set_id=set_id)
-            self.queue_activity(state, self.pack.sets[set_id].get("activity"),
-                                "Read this carefully once more — try to remember the key facts.")
+            self.teach(state, set_id, "restudy", "Read this carefully once more — try to remember the key facts.")
 
     def _child_finished(self, state, ctx):
         stack = state["stack"]

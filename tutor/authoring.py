@@ -3,7 +3,7 @@ and let the model repair its own validation errors. Drafts are hidden from stude
 until a teacher approves them in the dashboard.
 
     # needs ANTHROPIC_API_KEY
-    python -m tutor.authoring generate --strategy prereq_graph \
+    python -m tutor.authoring generate --strategy prereq_graph --pedagogy inquiry \
         --title "Decimals" --subject "Mathematics (Class 6)" \
         --brief "Place value of decimals, comparing, adding and subtracting decimals, converting fractions to decimals" \
         --out packs/math_decimals.json
@@ -39,6 +39,32 @@ GUIDE = {
 - items ordered easiest → hardest: recognise (mcq) → recall in context (mcq cloze) → produce (text) → use (free_text with rubric and keywords). No links.
 - units[0].sets = the order new cards are introduced.""",
 }
+
+INQUIRY_GUIDE = """PEDAGOGY: inquiry-driven and constructivist (5E cycle, Agastya session-plan style). Students work ALONE on a device.
+Every item set gets an "episode" that runs BEFORE any scored question:
+- "elicit": 0-2 open questions drawing on the student's own experience (home, village/town, market, farm, festivals, cooking, travel).
+- "predict": exactly ONE prediction question (optionally with "options"); it is never marked right or wrong.
+- "explore": the student investigates before being told anything. "tool" is one of:
+    fraction_strips  {"strips": [denominators], "preset": [{"parts": n, "shaded": k}], "max_rows": n}
+    context_sentences {"word": w, "sentences": [3 sentences using the word]}
+    problem          {"problem": "markdown problem to try before any teaching"}
+    real_materials   {"materials": [...], "steps": [...], "safety": "..."}  (safe, easily available things)
+  plus "prompt" (what to do) and "record" (what to write about what they found).
+- "probe": probing questions in this order: observe ("What did you notice…?") -> why ("Why do you think…?")
+  -> where_else ("Where else…?") -> summarise ("In your own words…"). Each {"kind", "prompt", optional "followup"
+  used when the student's answer is very short}. Open, divergent wording; never signal a single right answer.
+- "explain": {"activity": lesson id (the tutor's explanation, shown AFTER the student's own), "revisit":
+  text that quotes the student's guess with {prediction} and compares it with what the investigation shows}.
+- "connect": 1-3 real-life examples from the child's context, interdisciplinary but never naming a school subject.
+- "key_learning": one sentence.
+Scored items additionally get "hints": [a Socratic question, then a nudge] (never the answer), the worked solution in
+"explanation", and "misconceptions": [{"id", "label", "values": [wrong numeric/fraction answers] or "responses":
+[wrong typed answers / wrong mcq options], "probe": a question that creates cognitive conflict ({response} = what they
+wrote); it must NOT reveal the answer}] for the common errors students make on that item.
+Use "investigate" for general activities; "experiment" only for fully student-designed fair tests.
+
+EXAMPLE EPISODE:
+"""
 
 ITEM_TYPES = """Item types (field "type"):
 - mcq: options[], answer (must exactly equal one option)
@@ -76,7 +102,14 @@ def _extract_json(text: str) -> dict:
     return json.loads(text[start:end + 1])
 
 
-def generate(strategy, title, subject, brief, pack_id, model, max_repairs=2, log=print) -> dict:
+def _inquiry_guide() -> str:
+    data = json.loads((PACKS_DIR / "math_fractions.json").read_text(encoding="utf-8"))
+    s = data["item_sets"]["F_ADD_LIKE"]
+    ex = {"episode": s["episode"], "item_example": s["items"][0]}
+    return INQUIRY_GUIDE + json.dumps(ex, ensure_ascii=False, indent=1)
+
+
+def generate(strategy, title, subject, brief, pack_id, model, max_repairs=2, log=print, pedagogy="inquiry") -> dict:
     prompt = f"""You are an instructional designer building content for an intelligent tutoring system.
 Create a complete subject pack as JSON.
 
@@ -87,10 +120,12 @@ Strategy: {strategy} — {STRATEGIES[strategy].description}
 
 {GUIDE[strategy]}
 
+{_inquiry_guide() if pedagogy == "inquiry" else "PEDAGOGY: direct (lesson, then questions)."}
+
 {ITEM_TYPES}
 
 Use exactly this JSON shape (a trimmed example from another pack follows). Set "id": "{pack_id}",
-"strategy": "{strategy}", "status": "draft". Answers must be correct — they will be checked automatically.
+"strategy": "{strategy}", "pedagogy": "{pedagogy}", "status": "draft". Answers must be correct — they will be checked automatically.
 
 EXAMPLE:
 {json.dumps(_example(strategy), ensure_ascii=False, indent=1)}
@@ -105,7 +140,7 @@ Reply with the JSON object only."""
         except json.JSONDecodeError as e:
             errors, warnings, data = [f"output was not valid JSON: {e}"], [], None
         else:
-            data.update(id=pack_id, strategy=strategy, status="draft")
+            data.update(id=pack_id, strategy=strategy, pedagogy=pedagogy, status="draft")
             errors, warnings = validate(data)
         if not errors:
             for w in warnings:
@@ -123,6 +158,7 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("generate", help="draft a new pack with an LLM")
     g.add_argument("--strategy", required=True, choices=list(STRATEGIES))
+    g.add_argument("--pedagogy", default="inquiry", choices=["inquiry", "direct"])
     g.add_argument("--title", required=True)
     g.add_argument("--subject", default="")
     g.add_argument("--brief", required=True)
@@ -151,7 +187,7 @@ def main(argv=None):
         print("Set ANTHROPIC_API_KEY to generate packs.", file=sys.stderr)
         return 2
     pack_id = args.id or Path(args.out).stem
-    data = generate(args.strategy, args.title, args.subject, args.brief, pack_id, args.model)
+    data = generate(args.strategy, args.title, args.subject, args.brief, pack_id, args.model, pedagogy=args.pedagogy)
     Path(args.out).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote draft pack {args.out} — review and approve it in the teacher dashboard")
     return 0

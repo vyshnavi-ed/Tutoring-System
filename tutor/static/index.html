@@ -15,6 +15,7 @@
 <main id="app"></main>
 
 <script src="/static/common.js"></script>
+<script src="/static/tools.js"></script>
 <script>
 const app = document.getElementById("app");
 let student = localStorage.getItem("tutor_student") || "";
@@ -42,7 +43,8 @@ async function home() {
       <div class="panel pack-card" data-id="${p.id}">
         <span class="muted small">${esc(p.subject)}</span>
         <h3>${esc(p.title)}</h3>
-        <div><span class="badge">${STRATEGY_LABEL[p.strategy] || p.strategy}</span></div>
+        <div class="row" style="gap:6px"><span class="badge">${STRATEGY_LABEL[p.strategy] || p.strategy}</span>
+          ${p.pedagogy === "inquiry" ? `<span class="badge ok">Inquiry-based</span>` : ""}</div>
         <p class="small muted" style="margin:6px 0 0">${esc(p.description)}</p>
       </div>`).join("")}
     </div>`;
@@ -82,29 +84,65 @@ function progressHtml(p) {
 
 function feedbackHtml(r) {
   if (!r) return "";
+  if (r.recorded) return r.ack ? `<div class="ack">✓ ${esc(r.ack)}</div>` : "";
+  if (r.retry) {
+    const p = r.probe || {};
+    const head = p.kind === "misconception" ? "🤔 Not yet — think about this" :
+      `💡 Not yet — hint ${p.rung} of ${p.of}`;
+    return `<div class="probe-box"><h4>${head}</h4>${r.feedback ? `<div class="line">${mdi(r.feedback)}</div>` : ""}
+      <div class="line">${mdi(p.text)}</div><div class="small muted" style="margin-top:6px">Have another go at the same question.</div></div>`;
+  }
   const lines = [];
   if (r.feedback) lines.push(`<div class="line">${mdi(r.feedback)}</div>`);
   if (r.hint) lines.push(`<div class="line"><b>Hint:</b> ${mdi(r.hint)}</div>`);
   if (r.answer !== undefined) lines.push(`<div class="line"><b>Answer:</b> ${esc(r.answer)}</div>`);
-  if (r.explanation) lines.push(`<div class="line"><b>Why:</b> ${mdi(r.explanation)}</div>`);
-  return `<div class="feedback ${r.passed ? "ok" : "bad"}"><h4>${r.passed ? "✓ Correct" : "✗ Not quite"}</h4>${lines.join("")}</div>`;
+  if (r.explanation) lines.push(`<div class="line"><b>${r.passed ? "Why" : "Worked example"}:</b> ${mdi(r.explanation)}</div>`);
+  const head = r.passed ? (r.assisted ? "✓ You got there!" : "✓ Correct") : "✗ Not quite";
+  return `<div class="feedback ${r.passed ? "ok" : "bad"}"><h4>${head}</h4>${lines.join("")}</div>`;
 }
+
+const PHASE_LABEL = { elicit: "Think back", predict: "Predict", probe: "Think about it", explore: "Investigate" };
 
 function render(a) {
   const prog = progressHtml(a.progress);
-  const fb = feedbackShown ? feedbackHtml(feedbackShown) : "";
+  const fbHtml = feedbackShown ? feedbackHtml(feedbackShown) : "";
+  const fb = fbHtml ? fbHtml + `<div style="height:14px"></div>` : "";
   feedbackShown = null;
   let body = "";
+  let tool = null;
+  const cont = `<div class="actions"><button class="primary" id="go">Continue</button></div>`;
   if (a.type === "activity") {
-    body = `<div class="panel">${fb}<div class="card-kind" style="margin-top:${fb ? 16 : 0}px">Lesson</div>
+    body = `<div class="panel">${fb}<div class="card-kind">Lesson</div>
       ${a.reason ? `<div class="reason">${esc(a.reason)}</div>` : ""}
-      <h2 style="margin-top:0">${esc(a.title)}</h2><div class="md">${md(a.body)}</div>
-      <div class="actions"><button class="primary" id="go">Continue</button></div></div>`;
+      <h2 style="margin-top:0">${esc(a.title)}</h2><div class="md">${md(a.body)}</div>${cont}</div>`;
   } else if (a.type === "message") {
-    body = `<div class="panel message ${a.tone}">${fb}<div class="md" style="margin-top:${fb ? 14 : 0}px">${md(a.text)}</div>
-      <div class="actions"><button class="primary" id="go">Continue</button></div></div>`;
+    body = `<div class="panel message ${a.tone}">${fb}<div class="md">${md(a.text)}</div>${cont}</div>`;
+  } else if (a.type === "prompt") {
+    const label = a.is_followup ? "One more question" : (PHASE_LABEL[a.phase] || "Think");
+    const opts = a.options ? `<div class="options">${a.options.map(o =>
+      `<label class="option" data-v="${esc(o)}"><input type="radio" name="opt"><span class="md">${md(o)}</span></label>`).join("")}</div>
+      <div class="small muted" style="margin:12px 0 6px">Why do you think so?</div>` : "";
+    body = `<div class="panel phase-${a.phase}">${fb}<div class="card-kind">${label}</div>
+      <div class="prompt md">${md(a.prompt)}</div>${opts}
+      <textarea id="ans" rows="3" placeholder="${a.phase === "predict" ? "My guess is… because…" : "Write what you think…"}"></textarea>
+      ${a.phase === "predict" ? `<div class="small muted" style="margin-top:6px">There's no wrong answer here — just make your best guess.</div>` : ""}
+      <div class="actions"><button class="primary" id="send">Share</button><span class="muted small" id="status"></span></div></div>`;
+  } else if (a.type === "explore") {
+    body = `<div class="panel phase-explore">${fb}<div class="card-kind">${a.again ? "Investigate again" : "Investigate"}</div>
+      <div class="prompt md">${md(a.prompt || "")}</div><div class="tool" id="tool"></div>
+      <div class="small" style="margin:10px 0 6px"><b>${mdi(a.record || "What did you find?")}</b></div>
+      <textarea id="ans" rows="3" placeholder="I noticed…"></textarea>
+      <div class="actions"><button class="primary" id="send">Share what I found</button><span class="muted small" id="status"></span></div></div>`;
+  } else if (a.type === "explain") {
+    body = `<div class="panel">${fb}<div class="card-kind">Let's make sense of it</div>
+      ${a.revisit ? `<div class="revisit md">${md(a.revisit)}</div>` : ""}
+      <h2 style="margin-top:0">${esc(a.title)}</h2><div class="md">${md(a.body)}</div>${cont}</div>`;
+  } else if (a.type === "connect") {
+    body = `<div class="panel">${fb}<div class="card-kind">Where else?</div>
+      ${a.items.length ? `<ul>${a.items.map(i => `<li>${mdi(i)}</li>`).join("")}</ul>` : ""}
+      ${a.key_learning ? `<div class="key-learning">🔑 ${esc(a.key_learning)}</div>` : ""}${cont}</div>`;
   } else if (a.type === "item") {
-    body = `<div class="panel">${fb}<div class="card-kind" style="margin-top:${fb ? 16 : 0}px">Question</div>
+    body = `<div class="panel">${fb}<div class="card-kind">Question</div>
       <div class="prompt md">${md(a.prompt)}</div>${inputHtml(a)}
       <div class="actions"><button class="primary" id="submit">Check answer</button><span class="muted small" id="status"></span></div></div>`;
   } else if (a.type === "done") {
@@ -114,7 +152,12 @@ function render(a) {
       <button class="link" id="reset">Start this subject over</button></div></div>`;
   }
   app.innerHTML = prog + body;
-  wire(a);
+  if (a.type === "explore") {
+    const t = TOOLS[a.tool];
+    tool = t ? t(document.getElementById("tool"), a) : null;
+  }
+  wire(a, tool);
+  window.scrollTo(0, 0);
 }
 
 function inputHtml(a) {
@@ -128,7 +171,7 @@ function inputHtml(a) {
   return `<input type="text" id="ans" autocomplete="off" placeholder="${ph}">`;
 }
 
-function wire(a) {
+function wire(a, tool) {
   const go = document.getElementById("go");
   if (go) { go.onclick = async () => { go.disabled = true; render(await api.post(base() + "/continue")); }; go.focus(); }
   const back = document.getElementById("back");
@@ -138,13 +181,35 @@ function wire(a) {
   const reset = document.getElementById("reset");
   if (reset) reset.onclick = async () => { if (confirm("Erase your progress in this subject?")) { await api.post(base() + "/reset"); start(packId); } };
 
-  if (a.type !== "item") return;
   let selected = null;
   app.querySelectorAll(".option").forEach(el => el.onclick = () => {
     app.querySelectorAll(".option").forEach(x => x.classList.remove("sel"));
     el.classList.add("sel"); el.querySelector("input").checked = true; selected = el.dataset.v;
   });
   const ans = document.getElementById("ans");
+  const status = document.getElementById("status");
+
+  // ungraded episode responses
+  const send = document.getElementById("send");
+  if (send) {
+    send.onclick = async () => {
+      let text = ans.value.trim();
+      if (a.options) {
+        if (!selected) { status.textContent = "Pick one first."; return; }
+        text = selected + (text ? " — because " + text : "");
+      }
+      const extra = tool && tool.summary ? tool.summary() : "";
+      if (!text && !extra) { status.textContent = "Write something first — any idea is fine."; return; }
+      if (extra) text += (text ? "\n" : "") + "[" + extra + "]";
+      send.disabled = true;
+      const r = await api.post(base() + "/answer", { response: text });
+      feedbackShown = r.result;
+      render(r.action);
+    };
+    return;
+  }
+
+  if (a.type !== "item") return;
   if (ans) {
     ans.focus();
     if (ans.tagName === "INPUT") ans.onkeydown = e => { if (e.key === "Enter") submit.click(); };
@@ -155,9 +220,9 @@ function wire(a) {
   const submit = document.getElementById("submit");
   submit.onclick = async () => {
     const response = a.item_type === "mcq" ? selected : ans.value;
-    if (response == null || String(response).trim() === "") { document.getElementById("status").textContent = "Please answer first."; return; }
+    if (response == null || String(response).trim() === "") { status.textContent = "Please answer first."; return; }
     submit.disabled = true;
-    document.getElementById("status").textContent = a.item_type === "code_python" ? "Running your code…" : "Checking…";
+    status.textContent = a.item_type === "code_python" ? "Running your code…" : "Checking…";
     const r = await api.post(base() + "/answer", { response });
     feedbackShown = r.result;
     render(r.action);

@@ -9,6 +9,8 @@ from __future__ import annotations
 from .graders import GRADERS, grade_code_python, parse_fraction
 from .strategies import STRATEGIES
 
+EXPLORE_TOOLS = {"fraction_strips", "context_sentences", "problem", "real_materials"}  # see static/tools.js
+
 
 def validate(data: dict, run_code: bool = True) -> tuple[list[str], list[str]]:
     errors, warnings = [], []
@@ -24,6 +26,9 @@ def validate(data: dict, run_code: bool = True) -> tuple[list[str], list[str]]:
         E(f"unknown strategy '{strategy}' (known: {', '.join(STRATEGIES)})")
 
     sets, acts = data["item_sets"], data.get("activities", {})
+    pedagogy = data.get("pedagogy", "direct")
+    if pedagogy not in ("direct", "inquiry"):
+        E(f"unknown pedagogy '{pedagogy}' (known: direct, inquiry)")
     if not data["units"]:
         E("pack has no units")
     for u in data["units"]:
@@ -55,6 +60,10 @@ def validate(data: dict, run_code: bool = True) -> tuple[list[str], list[str]]:
             E(f"{sid}: item ids missing or duplicated")
         for it in items:
             _check_item(sid, it, E, W, run_code)
+        if s.get("episode"):
+            _check_episode(sid, s["episode"], acts, E, W)
+        elif pedagogy == "inquiry":
+            W(f"{sid}: no inquiry episode — this skill will be taught directly (lesson first)")
 
     if strategy in ("level_descent", "prereq_graph"):
         cyc = _find_cycle({sid: s.get("links", []) for sid, s in sets.items()})
@@ -82,8 +91,61 @@ def validate(data: dict, run_code: bool = True) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
+def _check_episode(sid, ep, acts, E, W):
+    where = f"{sid}/episode"
+    for e in ep.get("elicit", []):
+        if not e.get("prompt"):
+            E(f"{where}: elicit entry without a prompt")
+    pr = ep.get("predict")
+    if pr is not None:
+        if not pr.get("prompt"):
+            E(f"{where}: predict has no prompt")
+        if pr.get("options") is not None and len(pr["options"]) < 2:
+            E(f"{where}: predict options need at least 2 choices")
+    ex = ep.get("explore")
+    if ex is not None:
+        if ex.get("tool") not in EXPLORE_TOOLS:
+            E(f"{where}: unknown explore tool '{ex.get('tool')}' (known: {', '.join(sorted(EXPLORE_TOOLS))})")
+        if ex.get("tool") == "context_sentences" and not ex.get("sentences"):
+            E(f"{where}: context_sentences needs sentences")
+        if ex.get("tool") == "problem" and not ex.get("problem"):
+            E(f"{where}: problem tool needs a problem")
+    else:
+        W(f"{where}: no explore phase — students won't investigate before being told")
+    if not ep.get("predict") and not ex:
+        W(f"{where}: no prediction or investigation to revisit")
+    for p in ep.get("probe", []):
+        if not p.get("prompt"):
+            E(f"{where}: probe without a prompt")
+    kinds = [p.get("kind") for p in ep.get("probe", [])]
+    if ep.get("probe") and "summarise" not in kinds and "why" not in kinds:
+        W(f"{where}: probes never ask the student to explain or summarise in their own words")
+    a = (ep.get("explain") or {}).get("activity")
+    if a and a not in acts:
+        E(f"{where}: explain activity '{a}' not defined")
+    rv = (ep.get("explain") or {}).get("revisit", "")
+    if rv and "{prediction}" not in rv:
+        W(f"{where}: revisit text doesn't quote the student's prediction ({{prediction}})")
+
+
 def _check_item(sid, it, E, W, run_code):
     where = f"{sid}/{it.get('id')}"
+    for mc in it.get("misconceptions", []):
+        if not mc.get("id") or not mc.get("probe"):
+            E(f"{where}: misconception needs an id and a probe")
+        if not (mc.get("values") or mc.get("responses") or mc.get("pattern")):
+            E(f"{where}: misconception {mc.get('id')} has nothing to match (values/responses/pattern)")
+        for v in mc.get("values", []):
+            if parse_fraction(str(v)) is None:
+                E(f"{where}: misconception value '{v}' is not a number/fraction")
+        if it.get("type") == "mcq":
+            for r in mc.get("responses", []):
+                if r not in it.get("options", []):
+                    W(f"{where}: misconception response '{r}' is not one of the options")
+                if r == it.get("answer"):
+                    E(f"{where}: misconception matches the correct answer")
+    if "hints" in it and not all(isinstance(h, str) and h for h in it["hints"]):
+        E(f"{where}: hints must be non-empty strings")
     t = it.get("type")
     if t not in GRADERS:
         E(f"{where}: unknown item type '{t}'")

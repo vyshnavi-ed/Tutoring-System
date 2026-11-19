@@ -13,6 +13,7 @@ from .graders import grade
 from .strategies import STRATEGIES
 
 DAY = 86400.0
+INPUT_TYPES = ("prompt", "explore")   # episode steps that wait for a (non-graded) student response
 
 
 class Ctx:
@@ -80,6 +81,24 @@ class Engine:
                     "reason": act.get("reason", "")}
         if act["type"] == "message":
             return {**base, "type": "message", "text": act["text"], "tone": act.get("tone", "info")}
+        if act["type"] == "prompt":
+            out = {**base, "type": "prompt", "phase": act.get("phase"), "kind": act.get("kind", ""),
+                   "prompt": act["prompt"], "is_followup": act.get("is_followup", False)}
+            if act.get("options"):
+                out["options"] = act["options"]
+            return out
+        if act["type"] == "explore":
+            ex = dict(pack.sets[act["set_id"]]["episode"]["explore"])
+            return {**base, **ex, "type": "explore", "phase": "explore", "title": act.get("title", ""), "again": act.get("again", False)}
+        if act["type"] == "explain":
+            a = pack.activity(act.get("activity_id")) or {"title": "", "body": ""}
+            pred = state.get("predictions", {}).get(act["set_id"])
+            revisit = act.get("revisit", "")
+            revisit = revisit.replace("{prediction}", f"“{pred}”") if (revisit and pred) else ""
+            return {**base, "type": "explain", "title": a.get("title", ""), "body": a.get("body", ""),
+                    "revisit": revisit}
+        if act["type"] == "connect":
+            return {**base, "type": "connect", "items": act.get("items", []), "key_learning": act.get("key_learning", "")}
         if act["type"] == "item":
             item = pack.item(act["set_id"], act["item_id"])
             out = {**base, "type": "item", "set_id": act["set_id"], "item_id": item["id"],
@@ -117,16 +136,18 @@ class Engine:
     def acknowledge(self, student_id, pack_id) -> dict:
         """Student clicked 'Continue' on an activity or message."""
         pack, strat, state, ctx = self._load(student_id, pack_id)
-        if state["pending"]:
+        if state["pending"] and state["pending"][0]["type"] not in INPUT_TYPES:
             shown = state["pending"].pop(0)
-            if shown["type"] == "activity":
-                ctx.log("activity", activity_id=shown["activity_id"], reason=shown.get("reason", ""))
+            if shown["type"] in ("activity", "explain"):
+                ctx.log("activity", activity_id=shown.get("activity_id"), reason=shown.get("reason", ""))
         out = self._next(pack, strat, state, ctx)
         self.store.save_state(student_id, pack_id, state)
         return out
 
     def answer(self, student_id, pack_id, response) -> dict:
         pack, strat, state, ctx = self._load(student_id, pack_id)
+        if state["pending"] and state["pending"][0]["type"] in INPUT_TYPES:
+            return self._episode_response(student_id, pack, strat, state, ctx, response)
         if state["pending"] or not state["current"]:
             return {"error": "no question is waiting for an answer", "action": self._next(pack, strat, state, ctx)}
         cur = state["current"]
@@ -136,6 +157,19 @@ class Engine:
         passed = result.score >= float(item.get("pass_score", default_pass))
 
         self.store.add_attempt(student_id, pack_id, set_id, item, response, result, passed)
+
+        # pedagogy: on a wrong answer, maybe give a probe/hint and let the student retry the same item
+        if not passed and strat.allow_retry(state):
+            rung = strat.ped.on_wrong(state, item, response, result, ctx)
+            if rung:
+                res = {"score": round(result.score, 3), "passed": False, "retry": True,
+                       "feedback": result.feedback if result.score > 0 else "", "probe": rung}
+                out = self._next(pack, strat, state, ctx)
+                self.store.save_state(student_id, pack_id, state)
+                return {"result": res, "action": out}
+        tries_used = state.get("tries", {}).get(f"{set_id}::{item['id']}", 0)
+        if hasattr(strat.ped, "clear_tries"):
+            strat.ped.clear_tries(state, set_id, item["id"])
         state["current"] = None
 
         if result.needs_review:
@@ -165,7 +199,7 @@ class Engine:
 
         reveal = pack.config.get("reveal_answer_on_fail", False)
         res = {"score": round(result.score, 3), "passed": passed, "feedback": result.feedback,
-               "needs_review": result.needs_review}
+               "needs_review": result.needs_review, "assisted": bool(passed and tries_used)}
         if not passed:
             if item.get("hint"):
                 res["hint"] = item["hint"]
@@ -179,6 +213,21 @@ class Engine:
         out = self._next(pack, strat, state, ctx)
         self.store.save_state(student_id, pack_id, state)
         return {"result": res, "action": out}
+
+    def _episode_response(self, student_id, pack, strat, state, ctx, response):
+        entry = state["pending"].pop(0)
+        asked = entry.get("prompt", "")
+        if entry["type"] == "explore":
+            ex = pack.sets[entry["set_id"]]["episode"]["explore"]
+            asked = ex.get("record") or ex.get("prompt", "")
+        self.store.add_response(student_id, pack.id, entry.get("set_id"), entry.get("phase"),
+                                entry.get("kind", ""), asked,
+                                str(response), bool(entry.get("is_followup")))
+        ctx.log("response", set_id=entry.get("set_id"), phase=entry.get("phase"))
+        info = strat.ped.respond(state, entry, str(response), ctx)
+        out = self._next(pack, strat, state, ctx)
+        self.store.save_state(student_id, pack.id, state)
+        return {"result": {"recorded": True, **info}, "action": out}
 
     def advance_clock(self, student_id, pack_id, days: float) -> dict:
         """Demo helper for spaced repetition: pretend time has passed."""

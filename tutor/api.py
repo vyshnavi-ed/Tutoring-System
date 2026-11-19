@@ -57,7 +57,8 @@ def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, 
     # ---------------- packs
     @app.get("/api/packs")
     def list_packs():
-        return [{"id": p.id, "title": p.title, "subject": p.subject, "strategy": p.strategy, "status": p.status,
+        return [{"id": p.id, "title": p.title, "subject": p.subject, "strategy": p.strategy, "pedagogy": p.pedagogy,
+                 "status": p.status,
                  "description": p.data.get("description", ""), "sets": len(p.sets),
                  "items": sum(len(s.get("items", [])) for s in p.sets.values())}
                 for p in eng.packs.values()]
@@ -150,7 +151,19 @@ def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, 
         pack_or_404(pack_id)
         return {"summary": eng.summary(student, pack_id),
                 "attempts": eng.store.attempts(student, pack_id),
+                "responses": eng.store.responses(student, pack_id),
                 "events": eng.store.events(student, pack_id)}
+
+    @app.get("/api/teacher/misconceptions/{pack_id}")
+    def misconceptions(pack_id: str):
+        pack = pack_or_404(pack_id)
+        out = []
+        for m in eng.store.misconception_counts(pack_id):
+            s = pack.sets.get(m["set_id"], {})
+            label = next((mc.get("label", mc["id"]) for it in s.get("items", [])
+                          for mc in it.get("misconceptions", []) if mc["id"] == m["misconception"]), m["misconception"])
+            out.append({**m, "label": label, "set_title": s.get("title", m["set_id"])})
+        return sorted(out, key=lambda x: -len(x["students"]))
 
     return app
 

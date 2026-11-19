@@ -4,7 +4,7 @@
   "subject": "Mathematics (Class 5–6)",
   "strategy": "prereq_graph",
   "status": "approved",
-  "description": "Diagnoses gaps by probing prerequisite skills (equivalent fractions, LCM, HCF…) whenever a student gets something wrong.",
+  "description": "Inquiry-based: predict, investigate with fraction strips, explain in your own words — then practise. Wrong answers get a thinking question first, not the answer.",
   "config": {
     "mastery_threshold": 0.95,
     "p_init": 0.3,
@@ -12,7 +12,9 @@
     "p_slip": 0.1,
     "p_guess": 0.2,
     "alert_after_failures": 3,
-    "reveal_answer_on_fail": true
+    "reveal_answer_on_fail": true,
+    "max_hints": 2,
+    "ai_followups": true
   },
   "activities": {
     "L_MEANING": {
@@ -72,18 +74,52 @@
           "prompt": "A cake is cut into 8 equal pieces. You eat 3 pieces. What fraction of the cake did you eat?",
           "answer": "3/8",
           "form": "simplest",
-          "hint": "Bottom number = how many equal pieces in total.",
           "explanation": "3 out of 8 equal pieces = 3/8.",
-          "id": "F_MEANING.1"
+          "id": "F_MEANING.1",
+          "misconceptions": [
+            {
+              "id": "flips_fraction",
+              "label": "Writes the fraction upside down",
+              "values": [
+                "8/3"
+              ],
+              "probe": "Which number tells how many equal pieces the whole is cut into? Should it go on top or at the bottom?"
+            }
+          ],
+          "hints": [
+            "What is the whole here, and how many equal parts is it cut into?",
+            "Bottom number = how many equal pieces in total."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "A chocolate bar has 10 equal squares. Ravi eats 7. What fraction is left?",
           "answer": "3/10",
           "form": "simplest",
-          "hint": "First find how many squares are left.",
           "explanation": "10 − 7 = 3 squares left out of 10 → 3/10.",
-          "id": "F_MEANING.2"
+          "id": "F_MEANING.2",
+          "misconceptions": [
+            {
+              "id": "flips_fraction",
+              "label": "Writes the fraction upside down",
+              "values": [
+                "10/3"
+              ],
+              "probe": "Which number tells how many equal pieces the whole is cut into? Should it go on top or at the bottom?"
+            },
+            {
+              "id": "answers_eaten_not_left",
+              "label": "Gives the part used instead of the part left",
+              "values": [
+                "7/10"
+              ],
+              "probe": "That's the part that was eaten or used. Read again: what does the question ask for?"
+            }
+          ],
+          "hints": [
+            "What is the whole here, and how many equal parts is it cut into?",
+            "First find how many squares are left."
+          ]
         },
         {
           "type": "mcq",
@@ -95,17 +131,33 @@
             "Nothing — it's just a label"
           ],
           "answer": "The whole is split into 9 equal parts",
-          "hint": "The denominator is the bottom number.",
-          "id": "F_MEANING.3"
+          "id": "F_MEANING.3",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "The denominator is the bottom number."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "A class has 12 students and 5 of them are girls. What fraction of the class are girls?",
           "answer": "5/12",
           "form": "simplest",
-          "hint": "Part over whole.",
           "explanation": "5 girls out of 12 students → 5/12.",
-          "id": "F_MEANING.4"
+          "id": "F_MEANING.4",
+          "misconceptions": [
+            {
+              "id": "flips_fraction",
+              "label": "Writes the fraction upside down",
+              "values": [
+                "12/5"
+              ],
+              "probe": "Which number tells how many equal pieces the whole is cut into? Should it go on top or at the bottom?"
+            }
+          ],
+          "hints": [
+            "What is the whole here, and how many equal parts is it cut into?",
+            "Part over whole."
+          ]
         },
         {
           "type": "mcq",
@@ -117,19 +169,91 @@
             "0/4"
           ],
           "answer": "4/4",
-          "hint": "Taking all the parts gives the whole.",
-          "id": "F_MEANING.5"
+          "id": "F_MEANING.5",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Taking all the parts gives the whole."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "A rope is cut into 6 equal pieces. 2 pieces are used. What fraction of the rope is used? (simplest form)",
           "answer": "1/3",
           "form": "simplest",
-          "hint": "Write 2/6, then simplify.",
           "explanation": "2/6 = 1/3.",
-          "id": "F_MEANING.6"
+          "id": "F_MEANING.6",
+          "misconceptions": [
+            {
+              "id": "flips_fraction",
+              "label": "Writes the fraction upside down",
+              "values": [
+                "3"
+              ],
+              "probe": "Which number tells how many equal pieces the whole is cut into? Should it go on top or at the bottom?"
+            }
+          ],
+          "hints": [
+            "What is the whole here, and how many equal parts is it cut into?",
+            "Write 2/6, then simplify."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "elicit": [
+          {
+            "prompt": "Have you ever shared a roti, a chocolate or a fruit with someone? How did you make sure the shares were fair?",
+            "followup": "What would make a share *unfair*?"
+          }
+        ],
+        "predict": {
+          "prompt": "A roti is torn into 4 pieces of different sizes. You get 1 piece. Do you have one quarter (1/4) of the roti?",
+          "options": [
+            "Yes, it is 1 out of 4 pieces",
+            "No",
+            "It depends"
+          ]
+        },
+        "explore": {
+          "tool": "real_materials",
+          "prompt": "Investigate with paper.",
+          "materials": [
+            "a sheet of paper (or a roti/chapati)",
+            "a pencil"
+          ],
+          "steps": [
+            "Fold the paper in half, then in half again. Open it out.",
+            "How many parts are there? Are they all the same size?",
+            "Shade or colour 3 of the parts.",
+            "Now fold another sheet into 4 parts that are NOT equal (fold any way you like)."
+          ],
+          "record": "What did you notice? How is the first sheet different from the second?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "On your first sheet, what part of the paper did you shade? Describe it in words."
+          },
+          {
+            "kind": "why",
+            "prompt": "Why can't we call one piece of the second (unequal) sheet a quarter?",
+            "followup": "What has to be true about the pieces?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: what do the top and bottom numbers of a fraction like 3/4 tell us?"
+          }
+        ],
+        "explain": {
+          "activity": "L_MEANING",
+          "revisit": "You predicted {prediction}. A quarter means one of **4 equal** parts — if the pieces aren't equal, one piece isn't a quarter."
+        },
+        "connect": [
+          "Cutting a watermelon for the family: everyone gets a fair share only if the slices are equal.",
+          "A cricket over has 6 balls — after 2 balls, 2/6 of the over is done.",
+          "If 1 of the 4 weeks of the month is holidays, that's 1/4 of the month."
+        ],
+        "key_learning": "A fraction tells how many equal parts the whole is cut into (bottom) and how many of those parts we take (top)."
+      }
     },
     "M_FACTORS": {
       "title": "Factors and HCF",
@@ -141,51 +265,175 @@
           "type": "numeric",
           "prompt": "What is the HCF of 12 and 18?",
           "answer": 6,
-          "hint": "List the factors of each number and find the biggest one they share.",
           "explanation": "The biggest number dividing both 12 and 18 is 6.",
-          "id": "M_FACTORS.1"
+          "id": "M_FACTORS.1",
+          "misconceptions": [
+            {
+              "id": "gives_lcm",
+              "label": "Gives a common multiple instead of a factor",
+              "values": [
+                "36",
+                "216"
+              ],
+              "probe": "{response} is a number that both 12 and 18 go *into*. The HCF must go into 12 and 18. Can a factor be bigger than 12?"
+            }
+          ],
+          "hints": [
+            "Which numbers divide 12 with nothing left over? Which of those also divide 18?",
+            "List the factors of each number and find the biggest one they share."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the HCF of 8 and 20?",
           "answer": 4,
-          "hint": "List the factors of each number and find the biggest one they share.",
           "explanation": "The biggest number dividing both 8 and 20 is 4.",
-          "id": "M_FACTORS.2"
+          "id": "M_FACTORS.2",
+          "misconceptions": [
+            {
+              "id": "gives_lcm",
+              "label": "Gives a common multiple instead of a factor",
+              "values": [
+                "40",
+                "160"
+              ],
+              "probe": "{response} is a number that both 8 and 20 go *into*. The HCF must go into 8 and 20. Can a factor be bigger than 8?"
+            }
+          ],
+          "hints": [
+            "Which numbers divide 8 with nothing left over? Which of those also divide 20?",
+            "List the factors of each number and find the biggest one they share."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the HCF of 15 and 25?",
           "answer": 5,
-          "hint": "List the factors of each number and find the biggest one they share.",
           "explanation": "The biggest number dividing both 15 and 25 is 5.",
-          "id": "M_FACTORS.3"
+          "id": "M_FACTORS.3",
+          "misconceptions": [
+            {
+              "id": "gives_lcm",
+              "label": "Gives a common multiple instead of a factor",
+              "values": [
+                "75",
+                "375"
+              ],
+              "probe": "{response} is a number that both 15 and 25 go *into*. The HCF must go into 15 and 25. Can a factor be bigger than 15?"
+            }
+          ],
+          "hints": [
+            "Which numbers divide 15 with nothing left over? Which of those also divide 25?",
+            "List the factors of each number and find the biggest one they share."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the HCF of 14 and 21?",
           "answer": 7,
-          "hint": "List the factors of each number and find the biggest one they share.",
           "explanation": "The biggest number dividing both 14 and 21 is 7.",
-          "id": "M_FACTORS.4"
+          "id": "M_FACTORS.4",
+          "misconceptions": [
+            {
+              "id": "gives_lcm",
+              "label": "Gives a common multiple instead of a factor",
+              "values": [
+                "42",
+                "294"
+              ],
+              "probe": "{response} is a number that both 14 and 21 go *into*. The HCF must go into 14 and 21. Can a factor be bigger than 14?"
+            }
+          ],
+          "hints": [
+            "Which numbers divide 14 with nothing left over? Which of those also divide 21?",
+            "List the factors of each number and find the biggest one they share."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the HCF of 16 and 24?",
           "answer": 8,
-          "hint": "List the factors of each number and find the biggest one they share.",
           "explanation": "The biggest number dividing both 16 and 24 is 8.",
-          "id": "M_FACTORS.5"
+          "id": "M_FACTORS.5",
+          "misconceptions": [
+            {
+              "id": "gives_lcm",
+              "label": "Gives a common multiple instead of a factor",
+              "values": [
+                "48",
+                "384"
+              ],
+              "probe": "{response} is a number that both 16 and 24 go *into*. The HCF must go into 16 and 24. Can a factor be bigger than 16?"
+            }
+          ],
+          "hints": [
+            "Which numbers divide 16 with nothing left over? Which of those also divide 24?",
+            "List the factors of each number and find the biggest one they share."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the HCF of 9 and 27?",
           "answer": 9,
-          "hint": "List the factors of each number and find the biggest one they share.",
           "explanation": "The biggest number dividing both 9 and 27 is 9.",
-          "id": "M_FACTORS.6"
+          "id": "M_FACTORS.6",
+          "misconceptions": [
+            {
+              "id": "gives_lcm",
+              "label": "Gives a common multiple instead of a factor",
+              "values": [
+                "27",
+                "243"
+              ],
+              "probe": "{response} is a number that both 9 and 27 go *into*. The HCF must go into 9 and 27. Can a factor be bigger than 9?"
+            }
+          ],
+          "hints": [
+            "Which numbers divide 9 with nothing left over? Which of those also divide 27?",
+            "List the factors of each number and find the biggest one they share."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "You have 12 laddoos to pack into boxes. Every box must have the same number and none can be left over. How many different box sizes do you think are possible?",
+          "options": [
+            "1 or 2",
+            "3 or 4",
+            "5 or 6",
+            "More than 6"
+          ]
+        },
+        "explore": {
+          "tool": "problem",
+          "prompt": "Investigate.",
+          "problem": "Try box sizes 1, 2, 3, 4 … up to 12. For each one, can you pack all **12 laddoos** with none left over?\n\nThen do the same for **18 laddoos**.",
+          "record": "Which box sizes work for 12? Which work for 18? Which work for both?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "Which box sizes worked for both 12 and 18? Which is the biggest?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why does a box size of 5 not work for 12 laddoos?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words, what is the biggest number that works for both called, and how do you find it?"
+          }
+        ],
+        "explain": {
+          "activity": "L_FACTORS",
+          "revisit": "You predicted {prediction}. For 12 there are 6 box sizes: 1, 2, 3, 4, 6, 12 — these are the **factors** of 12."
+        },
+        "connect": [
+          "Arranging 24 chairs in equal rows for an assembly: the number of rows must be a factor of 24.",
+          "Sharing 30 marbles equally among friends works for 2, 3, 5, 6, 10 or 15 friends."
+        ],
+        "key_learning": "A factor divides a number with nothing left over; the HCF is the biggest factor two numbers share."
+      }
     },
     "M_MULTIPLES": {
       "title": "Multiples and LCM",
@@ -197,51 +445,185 @@
           "type": "numeric",
           "prompt": "What is the LCM of 4 and 6?",
           "answer": 12,
-          "hint": "Write out the 4 times table and the 6 times table and find the first number in both.",
           "explanation": "The smallest number in both times tables is 12.",
-          "id": "M_MULTIPLES.1"
+          "id": "M_MULTIPLES.1",
+          "misconceptions": [
+            {
+              "id": "multiplies_instead",
+              "label": "Multiplies the numbers (not always the lowest)",
+              "values": [
+                "24"
+              ],
+              "probe": "24 is in both times tables — but is it the *first* one? Check the 4 times table below 24."
+            },
+            {
+              "id": "gives_hcf",
+              "label": "Gives a factor instead of a multiple",
+              "values": [
+                "2"
+              ],
+              "responses": [],
+              "probe": "{response} goes *into* 4 and 6. We need a number that both 4 and 6 go into."
+            }
+          ],
+          "hints": [
+            "Count up in 4s and in 6s. Where do the lists first meet?",
+            "Write out the 4 times table and the 6 times table and find the first number in both."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the LCM of 3 and 5?",
           "answer": 15,
-          "hint": "Write out the 3 times table and the 5 times table and find the first number in both.",
           "explanation": "The smallest number in both times tables is 15.",
-          "id": "M_MULTIPLES.2"
+          "id": "M_MULTIPLES.2",
+          "hints": [
+            "Count up in 3s and in 5s. Where do the lists first meet?",
+            "Write out the 3 times table and the 5 times table and find the first number in both."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the LCM of 6 and 8?",
           "answer": 24,
-          "hint": "Write out the 6 times table and the 8 times table and find the first number in both.",
           "explanation": "The smallest number in both times tables is 24.",
-          "id": "M_MULTIPLES.3"
+          "id": "M_MULTIPLES.3",
+          "misconceptions": [
+            {
+              "id": "multiplies_instead",
+              "label": "Multiplies the numbers (not always the lowest)",
+              "values": [
+                "48"
+              ],
+              "probe": "48 is in both times tables — but is it the *first* one? Check the 6 times table below 48."
+            },
+            {
+              "id": "gives_hcf",
+              "label": "Gives a factor instead of a multiple",
+              "values": [
+                "2"
+              ],
+              "responses": [],
+              "probe": "{response} goes *into* 6 and 8. We need a number that both 6 and 8 go into."
+            }
+          ],
+          "hints": [
+            "Count up in 6s and in 8s. Where do the lists first meet?",
+            "Write out the 6 times table and the 8 times table and find the first number in both."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the LCM of 2 and 7?",
           "answer": 14,
-          "hint": "Write out the 2 times table and the 7 times table and find the first number in both.",
           "explanation": "The smallest number in both times tables is 14.",
-          "id": "M_MULTIPLES.4"
+          "id": "M_MULTIPLES.4",
+          "hints": [
+            "Count up in 2s and in 7s. Where do the lists first meet?",
+            "Write out the 2 times table and the 7 times table and find the first number in both."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the LCM of 4 and 10?",
           "answer": 20,
-          "hint": "Write out the 4 times table and the 10 times table and find the first number in both.",
           "explanation": "The smallest number in both times tables is 20.",
-          "id": "M_MULTIPLES.5"
+          "id": "M_MULTIPLES.5",
+          "misconceptions": [
+            {
+              "id": "multiplies_instead",
+              "label": "Multiplies the numbers (not always the lowest)",
+              "values": [
+                "40"
+              ],
+              "probe": "40 is in both times tables — but is it the *first* one? Check the 4 times table below 40."
+            },
+            {
+              "id": "gives_hcf",
+              "label": "Gives a factor instead of a multiple",
+              "values": [
+                "2"
+              ],
+              "responses": [],
+              "probe": "{response} goes *into* 4 and 10. We need a number that both 4 and 10 go into."
+            }
+          ],
+          "hints": [
+            "Count up in 4s and in 10s. Where do the lists first meet?",
+            "Write out the 4 times table and the 10 times table and find the first number in both."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "What is the LCM of 6 and 9?",
           "answer": 18,
-          "hint": "Write out the 6 times table and the 9 times table and find the first number in both.",
           "explanation": "The smallest number in both times tables is 18.",
-          "id": "M_MULTIPLES.6"
+          "id": "M_MULTIPLES.6",
+          "misconceptions": [
+            {
+              "id": "multiplies_instead",
+              "label": "Multiplies the numbers (not always the lowest)",
+              "values": [
+                "54"
+              ],
+              "probe": "54 is in both times tables — but is it the *first* one? Check the 6 times table below 54."
+            },
+            {
+              "id": "gives_hcf",
+              "label": "Gives a factor instead of a multiple",
+              "values": [
+                "3"
+              ],
+              "responses": [],
+              "probe": "{response} goes *into* 6 and 9. We need a number that both 6 and 9 go into."
+            }
+          ],
+          "hints": [
+            "Count up in 6s and in 9s. Where do the lists first meet?",
+            "Write out the 6 times table and the 9 times table and find the first number in both."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "Bus A leaves the stand every 4 minutes. Bus B leaves every 6 minutes. Both leave together right now. When do you think they will next leave together?",
+          "options": [
+            "After 10 minutes",
+            "After 12 minutes",
+            "After 24 minutes",
+            "Not sure"
+          ]
+        },
+        "explore": {
+          "tool": "problem",
+          "prompt": "Investigate.",
+          "problem": "Write down the times Bus A leaves: 4, 8, 12, …\n\nWrite down the times Bus B leaves: 6, 12, …\n\nKeep going up to 30 minutes.",
+          "record": "At which times do both buses leave together? Which is the first one?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "What is the first time both buses leave together? Is there a pattern in the later times?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why isn't 24 minutes the answer, even though 4 × 6 = 24?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words, how would you find the first time two buses meet again?"
+          }
+        ],
+        "explain": {
+          "activity": "L_MULTIPLES",
+          "revisit": "You predicted {prediction}. The lists meet first at **12** — the lowest common multiple of 4 and 6."
+        },
+        "connect": [
+          "Two friends water plants: one every 2 days, one every 3 days — they meet at the garden every 6 days.",
+          "Buying cups in packs of 6 and plates in packs of 8: the smallest equal number you can buy is 24 of each."
+        ],
+        "key_learning": "The LCM is the first number that appears in both times tables."
+      }
     },
     "F_EQUIV": {
       "title": "Equivalent fractions",
@@ -255,51 +637,186 @@
           "type": "numeric",
           "prompt": "Fill in the missing number: 2/3 = ?/12",
           "answer": 8,
-          "hint": "What do you multiply 3 by to get 12? Do the same to the top.",
           "explanation": "3 × 4 = 12, so 2 × 4 = 8.",
-          "id": "F_EQUIV.1"
+          "id": "F_EQUIV.1",
+          "misconceptions": [
+            {
+              "id": "additive_thinking",
+              "label": "Adds instead of multiplies",
+              "values": [
+                "11"
+              ],
+              "probe": "You added 9 to the top because 3 + 9 = 12. Try a simple check: is 1/2 the same amount as 2/3 (1 added to both)? What happens on the fraction strips?"
+            }
+          ],
+          "hints": [
+            "How many times bigger is 12 than 3? What should happen to each piece — and to the number of pieces?",
+            "3 × 4 = 12, so multiply the top by 4 too."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "Fill in the missing number: 3/5 = ?/20",
           "answer": 12,
-          "hint": "What do you multiply 5 by to get 20? Do the same to the top.",
           "explanation": "5 × 4 = 20, so 3 × 4 = 12.",
-          "id": "F_EQUIV.2"
+          "id": "F_EQUIV.2",
+          "misconceptions": [
+            {
+              "id": "additive_thinking",
+              "label": "Adds instead of multiplies",
+              "values": [
+                "18"
+              ],
+              "probe": "You added 15 to the top because 5 + 15 = 20. Try a simple check: is 1/2 the same amount as 2/3 (1 added to both)? What happens on the fraction strips?"
+            }
+          ],
+          "hints": [
+            "How many times bigger is 20 than 5? What should happen to each piece — and to the number of pieces?",
+            "5 × 4 = 20, so multiply the top by 4 too."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "Fill in the missing number: 1/4 = ?/12",
           "answer": 3,
-          "hint": "What do you multiply 4 by to get 12? Do the same to the top.",
           "explanation": "4 × 3 = 12, so 1 × 3 = 3.",
-          "id": "F_EQUIV.3"
+          "id": "F_EQUIV.3",
+          "misconceptions": [
+            {
+              "id": "additive_thinking",
+              "label": "Adds instead of multiplies",
+              "values": [
+                "9"
+              ],
+              "probe": "You added 8 to the top because 4 + 8 = 12. Try a simple check: is 1/2 the same amount as 2/3 (1 added to both)? What happens on the fraction strips?"
+            }
+          ],
+          "hints": [
+            "How many times bigger is 12 than 4? What should happen to each piece — and to the number of pieces?",
+            "4 × 3 = 12, so multiply the top by 3 too."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "Fill in the missing number: 5/6 = ?/18",
           "answer": 15,
-          "hint": "What do you multiply 6 by to get 18? Do the same to the top.",
           "explanation": "6 × 3 = 18, so 5 × 3 = 15.",
-          "id": "F_EQUIV.4"
+          "id": "F_EQUIV.4",
+          "misconceptions": [
+            {
+              "id": "additive_thinking",
+              "label": "Adds instead of multiplies",
+              "values": [
+                "17"
+              ],
+              "probe": "You added 12 to the top because 6 + 12 = 18. Try a simple check: is 1/2 the same amount as 2/3 (1 added to both)? What happens on the fraction strips?"
+            }
+          ],
+          "hints": [
+            "How many times bigger is 18 than 6? What should happen to each piece — and to the number of pieces?",
+            "6 × 3 = 18, so multiply the top by 3 too."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "Fill in the missing number: 3/7 = ?/21",
           "answer": 9,
-          "hint": "What do you multiply 7 by to get 21? Do the same to the top.",
           "explanation": "7 × 3 = 21, so 3 × 3 = 9.",
-          "id": "F_EQUIV.5"
+          "id": "F_EQUIV.5",
+          "misconceptions": [
+            {
+              "id": "additive_thinking",
+              "label": "Adds instead of multiplies",
+              "values": [
+                "17"
+              ],
+              "probe": "You added 14 to the top because 7 + 14 = 21. Try a simple check: is 1/2 the same amount as 2/3 (1 added to both)? What happens on the fraction strips?"
+            }
+          ],
+          "hints": [
+            "How many times bigger is 21 than 7? What should happen to each piece — and to the number of pieces?",
+            "7 × 3 = 21, so multiply the top by 3 too."
+          ]
         },
         {
           "type": "numeric",
           "prompt": "Fill in the missing number: 4/9 = ?/27",
           "answer": 12,
-          "hint": "What do you multiply 9 by to get 27? Do the same to the top.",
           "explanation": "9 × 3 = 27, so 4 × 3 = 12.",
-          "id": "F_EQUIV.6"
+          "id": "F_EQUIV.6",
+          "misconceptions": [
+            {
+              "id": "additive_thinking",
+              "label": "Adds instead of multiplies",
+              "values": [
+                "22"
+              ],
+              "probe": "You added 18 to the top because 9 + 18 = 27. Try a simple check: is 1/2 the same amount as 2/3 (1 added to both)? What happens on the fraction strips?"
+            }
+          ],
+          "hints": [
+            "How many times bigger is 27 than 9? What should happen to each piece — and to the number of pieces?",
+            "9 × 3 = 27, so multiply the top by 3 too."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "Is 2/3 of a roti the same amount as 4/6 of the same roti?",
+          "options": [
+            "Yes, the same",
+            "No, 4/6 is more",
+            "No, 2/3 is more"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            2,
+            3,
+            4,
+            6,
+            8,
+            12
+          ],
+          "preset": [
+            {
+              "parts": 3,
+              "shaded": 2
+            }
+          ],
+          "prompt": "A strip with **2/3** shaded is ready. Add strips cut into 6 and 12 parts. Shade pieces until each strip covers exactly the same length as 2/3.",
+          "record": "How many sixths matched 2/3? How many twelfths? What pattern do you see?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "What happened to the number of pieces and their size when you went from thirds to sixths?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why does 2/3 cover the same length as 4/6, even though the numbers are different?",
+            "followup": "What happened to each piece when you cut thirds into sixths?"
+          },
+          {
+            "kind": "where_else",
+            "prompt": "Where else might two different-looking amounts be the same? (Think of money, time or measuring.)"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: how can you make a fraction that is equal to 3/5?"
+          }
+        ],
+        "explain": {
+          "activity": "L_EQUIV",
+          "revisit": "You predicted {prediction}. On the strips, 2/3 and 4/6 end at exactly the same place — they're **equivalent**."
+        },
+        "connect": [
+          "Half an hour and 30 minutes out of 60 are the same amount of time.",
+          "50 paise is half a rupee — and so is 2 coins of 25 paise out of 4."
+        ],
+        "key_learning": "Cutting every piece into the same number of smaller pieces changes the numbers but not the amount."
+      }
     },
     "F_SIMPLIFY": {
       "title": "Simplifying fractions",
@@ -315,56 +832,120 @@
           "prompt": "Write 18/24 in simplest form.",
           "answer": "3/4",
           "form": "simplest",
-          "hint": "Divide top and bottom by their HCF.",
           "explanation": "HCF(18, 24) = 6. 18÷6 = 3, 24÷6 = 4 → 3/4.",
-          "id": "F_SIMPLIFY.1"
+          "id": "F_SIMPLIFY.1",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Divide top and bottom by their HCF."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 10/15 in simplest form.",
           "answer": "2/3",
           "form": "simplest",
-          "hint": "Divide top and bottom by their HCF.",
           "explanation": "HCF(10, 15) = 5. 10÷5 = 2, 15÷5 = 3 → 2/3.",
-          "id": "F_SIMPLIFY.2"
+          "id": "F_SIMPLIFY.2",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Divide top and bottom by their HCF."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 12/16 in simplest form.",
           "answer": "3/4",
           "form": "simplest",
-          "hint": "Divide top and bottom by their HCF.",
           "explanation": "HCF(12, 16) = 4. 12÷4 = 3, 16÷4 = 4 → 3/4.",
-          "id": "F_SIMPLIFY.3"
+          "id": "F_SIMPLIFY.3",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Divide top and bottom by their HCF."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 14/35 in simplest form.",
           "answer": "2/5",
           "form": "simplest",
-          "hint": "Divide top and bottom by their HCF.",
           "explanation": "HCF(14, 35) = 7. 14÷7 = 2, 35÷7 = 5 → 2/5.",
-          "id": "F_SIMPLIFY.4"
+          "id": "F_SIMPLIFY.4",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Divide top and bottom by their HCF."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 20/28 in simplest form.",
           "answer": "5/7",
           "form": "simplest",
-          "hint": "Divide top and bottom by their HCF.",
           "explanation": "HCF(20, 28) = 4. 20÷4 = 5, 28÷4 = 7 → 5/7.",
-          "id": "F_SIMPLIFY.5"
+          "id": "F_SIMPLIFY.5",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Divide top and bottom by their HCF."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 9/12 in simplest form.",
           "answer": "3/4",
           "form": "simplest",
-          "hint": "Divide top and bottom by their HCF.",
           "explanation": "HCF(9, 12) = 3. 9÷3 = 3, 12÷3 = 4 → 3/4.",
-          "id": "F_SIMPLIFY.6"
+          "id": "F_SIMPLIFY.6",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Divide top and bottom by their HCF."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "Is 18/24 the same as 3/4?",
+          "options": [
+            "Yes",
+            "No",
+            "Not sure"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            2,
+            3,
+            4,
+            6,
+            8,
+            12
+          ],
+          "prompt": "Build a strip of 12 parts and shade **9** (that's 9/12). Now find a strip with *fewer, bigger* pieces that covers exactly the same length.",
+          "record": "Which strip matched 9/12 with the fewest pieces? What did you divide by?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "When you used bigger pieces, what happened to both numbers?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why must you divide the top and the bottom by the *same* number?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: how do you know when a fraction can't be simplified any more?"
+          }
+        ],
+        "explain": {
+          "activity": "L_SIMPLIFY",
+          "revisit": "You predicted {prediction}. 18/24 and 3/4 are equal — dividing both by 6 (their HCF) gives the simplest form."
+        },
+        "connect": [
+          "Saying 'half the class' is simpler than '20 out of 40 students'.",
+          "Recipes for 8 people can be simplified to recipes for 2 by dividing every amount by 4."
+        ],
+        "key_learning": "Simplifying means using the biggest possible pieces: divide top and bottom by their HCF."
+      }
     },
     "F_MIXED": {
       "title": "Mixed numbers and improper fractions",
@@ -381,9 +962,23 @@
           "accepted": [
             "2 1/3"
           ],
-          "hint": "How many times does 3 go into 7, and what is left over?",
           "explanation": "7 ÷ 3 = 2 remainder 1 → 2 1/3.",
-          "id": "F_MIXED.1"
+          "id": "F_MIXED.1",
+          "misconceptions": [
+            {
+              "id": "swaps_whole_and_remainder",
+              "label": "Swaps whole number and remainder",
+              "responses": [
+                "1 2/3"
+              ],
+              "probe": "Check: 1 whole ones would be 3/3. Is that close to 7/3? Which number counts the full strips?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "How many whole strips of 3 pieces can you fill with 7 pieces?",
+            "7 ÷ 3 = 2 remainder 1."
+          ]
         },
         {
           "type": "text",
@@ -392,9 +987,23 @@
           "accepted": [
             "2 3/4"
           ],
-          "hint": "How many times does 4 go into 11, and what is left over?",
           "explanation": "11 ÷ 4 = 2 remainder 3 → 2 3/4.",
-          "id": "F_MIXED.2"
+          "id": "F_MIXED.2",
+          "misconceptions": [
+            {
+              "id": "swaps_whole_and_remainder",
+              "label": "Swaps whole number and remainder",
+              "responses": [
+                "3 2/4"
+              ],
+              "probe": "Check: 3 whole ones would be 12/4. Is that close to 11/4? Which number counts the full strips?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "How many whole strips of 4 pieces can you fill with 11 pieces?",
+            "11 ÷ 4 = 2 remainder 3."
+          ]
         },
         {
           "type": "text",
@@ -403,38 +1012,166 @@
           "accepted": [
             "4 1/2"
           ],
-          "hint": "How many times does 2 go into 9, and what is left over?",
           "explanation": "9 ÷ 2 = 4 remainder 1 → 4 1/2.",
-          "id": "F_MIXED.3"
+          "id": "F_MIXED.3",
+          "misconceptions": [
+            {
+              "id": "swaps_whole_and_remainder",
+              "label": "Swaps whole number and remainder",
+              "responses": [
+                "1 4/2"
+              ],
+              "probe": "Check: 1 whole ones would be 2/2. Is that close to 9/2? Which number counts the full strips?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "How many whole strips of 2 pieces can you fill with 9 pieces?",
+            "9 ÷ 2 = 4 remainder 1."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 2 3/5 as an improper fraction.",
           "answer": "13/5",
           "form": "improper",
-          "hint": "Multiply the whole number by the denominator, then add the numerator.",
           "explanation": "(2×5 + 3)/5 = 13/5.",
-          "id": "F_MIXED.4"
+          "id": "F_MIXED.4",
+          "misconceptions": [
+            {
+              "id": "adds_whole_to_numerator",
+              "label": "Adds the whole number to the numerator",
+              "values": [
+                "1"
+              ],
+              "probe": "One whole is 5/5, not 1/5. How many 5ths make 2 whole ones?"
+            },
+            {
+              "id": "forgets_part",
+              "label": "Forgets the fraction part",
+              "values": [
+                "2"
+              ],
+              "responses": [
+                "10/5"
+              ],
+              "probe": "That's just the 2 wholes. Where did the 3/5 go?"
+            }
+          ],
+          "hints": [
+            "How many 5ths are in one whole? In 2 wholes?",
+            "2 wholes = 10/5. Now add the 3/5."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 1 5/6 as an improper fraction.",
           "answer": "11/6",
           "form": "improper",
-          "hint": "Multiply the whole number by the denominator, then add the numerator.",
           "explanation": "(1×6 + 5)/6 = 11/6.",
-          "id": "F_MIXED.5"
+          "id": "F_MIXED.5",
+          "misconceptions": [
+            {
+              "id": "adds_whole_to_numerator",
+              "label": "Adds the whole number to the numerator",
+              "values": [
+                "1"
+              ],
+              "probe": "One whole is 6/6, not 1/6. How many 6ths make 1 whole ones?"
+            },
+            {
+              "id": "forgets_part",
+              "label": "Forgets the fraction part",
+              "values": [],
+              "responses": [
+                "6/6"
+              ],
+              "probe": "That's just the 1 wholes. Where did the 5/6 go?"
+            }
+          ],
+          "hints": [
+            "How many 6ths are in one whole? In 1 wholes?",
+            "1 wholes = 6/6. Now add the 5/6."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Write 3 1/4 as an improper fraction.",
           "answer": "13/4",
           "form": "improper",
-          "hint": "Multiply the whole number by the denominator, then add the numerator.",
           "explanation": "(3×4 + 1)/4 = 13/4.",
-          "id": "F_MIXED.6"
+          "id": "F_MIXED.6",
+          "misconceptions": [
+            {
+              "id": "adds_whole_to_numerator",
+              "label": "Adds the whole number to the numerator",
+              "values": [
+                "1"
+              ],
+              "probe": "One whole is 4/4, not 1/4. How many 4ths make 3 whole ones?"
+            },
+            {
+              "id": "forgets_part",
+              "label": "Forgets the fraction part",
+              "values": [
+                "3"
+              ],
+              "responses": [
+                "12/4"
+              ],
+              "probe": "That's just the 3 wholes. Where did the 1/4 go?"
+            }
+          ],
+          "hints": [
+            "How many 4ths are in one whole? In 3 wholes?",
+            "3 wholes = 12/4. Now add the 1/4."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "Seven children each get 1/3 of a roti. Is that more than 2 whole rotis?",
+          "options": [
+            "More than 2",
+            "Exactly 2",
+            "Less than 2"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            2,
+            3,
+            4
+          ],
+          "max_rows": 4,
+          "prompt": "Shade **7 thirds** using strips cut into 3 parts. You'll need more than one strip!",
+          "record": "How many whole strips did you fill? How many thirds were left over?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "How did you write 7/3 as wholes and a part?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why is 7/3 bigger than 1, but 2/3 is smaller than 1?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words, how do you turn an improper fraction into a mixed number?"
+          }
+        ],
+        "explain": {
+          "activity": "L_MIXED",
+          "revisit": "You predicted {prediction}. 7 thirds fill 2 whole strips with 1 third left: **2 1/3**."
+        },
+        "connect": [
+          "'Two and a half cups of rice' is a mixed number — 5 half-cups.",
+          "A 1 1/2 hour film is 3 half-hours long."
+        ],
+        "key_learning": "An improper fraction can be split into whole ones and a leftover part — that's a mixed number."
+      }
     },
     "F_ADD_LIKE": {
       "title": "Add & subtract: same denominator",
@@ -450,56 +1187,190 @@
           "prompt": "2/9 + 4/9 = ?  (simplest form)",
           "answer": "2/3",
           "form": "simplest",
-          "hint": "Same denominator: work with the numerators only and keep the denominator.",
           "explanation": "2 + 4 = 6, so 6/9 = 2/3.",
-          "id": "F_ADD_LIKE.1"
+          "id": "F_ADD_LIKE.1",
+          "misconceptions": [
+            {
+              "id": "add_denominators",
+              "label": "Adds the denominators",
+              "values": [
+                "1/3"
+              ],
+              "probe": "You wrote {response}. Compare it with 4/9, one of the fractions you started with. Is your answer bigger or smaller? Can adding more leave you with less?"
+            }
+          ],
+          "hints": [
+            "Picture a strip cut into 9 pieces. How many pieces do you have after you add?",
+            "Same-size pieces: add the numerators only — the denominator 9 stays. Then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "3/8 + 1/8 = ?  (simplest form)",
           "answer": "1/2",
           "form": "simplest",
-          "hint": "Same denominator: work with the numerators only and keep the denominator.",
           "explanation": "3 + 1 = 4, so 4/8 = 1/2.",
-          "id": "F_ADD_LIKE.2"
+          "id": "F_ADD_LIKE.2",
+          "misconceptions": [
+            {
+              "id": "add_denominators",
+              "label": "Adds the denominators",
+              "values": [
+                "1/4"
+              ],
+              "probe": "You wrote {response}. Compare it with 3/8, one of the fractions you started with. Is your answer bigger or smaller? Can adding more leave you with less?"
+            }
+          ],
+          "hints": [
+            "Picture a strip cut into 8 pieces. How many pieces do you have after you add?",
+            "Same-size pieces: add the numerators only — the denominator 8 stays. Then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "7/10 - 3/10 = ?  (simplest form)",
           "answer": "2/5",
           "form": "simplest",
-          "hint": "Same denominator: work with the numerators only and keep the denominator.",
           "explanation": "7 - 3 = 4, so 4/10 = 2/5.",
-          "id": "F_ADD_LIKE.3"
+          "id": "F_ADD_LIKE.3",
+          "misconceptions": [
+            {
+              "id": "subtract_denominators",
+              "label": "Subtracts the denominators",
+              "responses": [
+                "4/0"
+              ],
+              "probe": "A denominator of 0 would mean the whole is cut into 0 pieces! What does the denominator tell you — and does taking pieces away change it?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Picture a strip cut into 10 pieces. How many pieces do you have after you take away?",
+            "Same-size pieces: take away the numerators only — the denominator 10 stays. Then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "5/12 + 1/12 = ?  (simplest form)",
           "answer": "1/2",
           "form": "simplest",
-          "hint": "Same denominator: work with the numerators only and keep the denominator.",
           "explanation": "5 + 1 = 6, so 6/12 = 1/2.",
-          "id": "F_ADD_LIKE.4"
+          "id": "F_ADD_LIKE.4",
+          "misconceptions": [
+            {
+              "id": "add_denominators",
+              "label": "Adds the denominators",
+              "values": [
+                "1/4"
+              ],
+              "probe": "You wrote {response}. Compare it with 5/12, one of the fractions you started with. Is your answer bigger or smaller? Can adding more leave you with less?"
+            }
+          ],
+          "hints": [
+            "Picture a strip cut into 12 pieces. How many pieces do you have after you add?",
+            "Same-size pieces: add the numerators only — the denominator 12 stays. Then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "9/14 - 2/14 = ?  (simplest form)",
           "answer": "1/2",
           "form": "simplest",
-          "hint": "Same denominator: work with the numerators only and keep the denominator.",
           "explanation": "9 - 2 = 7, so 7/14 = 1/2.",
-          "id": "F_ADD_LIKE.5"
+          "id": "F_ADD_LIKE.5",
+          "misconceptions": [
+            {
+              "id": "subtract_denominators",
+              "label": "Subtracts the denominators",
+              "responses": [
+                "7/0"
+              ],
+              "probe": "A denominator of 0 would mean the whole is cut into 0 pieces! What does the denominator tell you — and does taking pieces away change it?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Picture a strip cut into 14 pieces. How many pieces do you have after you take away?",
+            "Same-size pieces: take away the numerators only — the denominator 14 stays. Then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "1/6 + 3/6 = ?  (simplest form)",
           "answer": "2/3",
           "form": "simplest",
-          "hint": "Same denominator: work with the numerators only and keep the denominator.",
           "explanation": "1 + 3 = 4, so 4/6 = 2/3.",
-          "id": "F_ADD_LIKE.6"
+          "id": "F_ADD_LIKE.6",
+          "misconceptions": [
+            {
+              "id": "add_denominators",
+              "label": "Adds the denominators",
+              "values": [
+                "1/3"
+              ],
+              "probe": "You wrote {response}. Compare it with 1/2, one of the fractions you started with. Is your answer bigger or smaller? Can adding more leave you with less?"
+            }
+          ],
+          "hints": [
+            "Picture a strip cut into 6 pieces. How many pieces do you have after you add?",
+            "Same-size pieces: add the numerators only — the denominator 6 stays. Then simplify."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "elicit": [
+          {
+            "prompt": "You ate 2 slices of a pizza cut into 8, then 1 more slice. How would you describe how much you ate?"
+          }
+        ],
+        "predict": {
+          "prompt": "Amma cuts a cake into 8 equal pieces. You eat 3 and your brother eats 2. What fraction of the cake did you eat together?",
+          "options": [
+            "5/8",
+            "5/16",
+            "6/8",
+            "Not sure"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            4,
+            8,
+            12
+          ],
+          "prompt": "Make a strip of **8** parts. Shade 3 pieces for you, then 2 more for your brother.",
+          "record": "How much of the strip is shaded altogether? Did the size of the pieces change?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "When you shaded more pieces, did the size of each piece change?"
+          },
+          {
+            "kind": "why",
+            "prompt": "So why does the bottom number stay 8 when you add 3/8 and 2/8?",
+            "followup": "What does the bottom number describe — the number of pieces you have, or the size of each piece?"
+          },
+          {
+            "kind": "where_else",
+            "prompt": "Where else do you add parts that are the same size?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: how do you add two fractions with the same denominator?"
+          }
+        ],
+        "explain": {
+          "activity": "L_ADD_LIKE",
+          "revisit": "You predicted {prediction}. The strip shows **5 of the 8** pieces shaded — 5/8. Adding pieces doesn't change their size, so the 8 stays."
+        },
+        "connect": [
+          "Filling a water tank: 2/10 in the morning and 3/10 in the evening makes 5/10 — half the tank.",
+          "Walking 1/4 km to the shop and 1/4 km back is 2/4 km — half a kilometre."
+        ],
+        "key_learning": "When the pieces are the same size, add how many pieces you have; the denominator (size of each piece) stays the same."
+      }
     },
     "F_COMPARE": {
       "title": "Comparing fractions",
@@ -519,9 +1390,32 @@
             "They are equal"
           ],
           "answer": "5/6",
-          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
           "explanation": "LCM(4, 6) = 12: 3/4 = 9/12, 5/6 = 10/12. So 5/6 is bigger.",
-          "id": "F_COMPARE.1"
+          "id": "F_COMPARE.1",
+          "misconceptions": [
+            {
+              "id": "equal_when_close",
+              "label": "Thinks the fractions are equal",
+              "responses": [
+                "They are equal"
+              ],
+              "probe": "Line them up on strips. Do they end at exactly the same place? How could you check precisely?",
+              "values": []
+            },
+            {
+              "id": "smaller_denominator_always_bigger",
+              "label": "Thinks fewer, bigger pieces always means a bigger fraction",
+              "responses": [
+                "3/4"
+              ],
+              "probe": "It's true that 4ths are bigger pieces than 6ths. But 3/4 has 3 of them and 5/6 has 5. Which covers more of the strip?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Imagine both fractions on fraction strips. Which shading would reach further?",
+            "Rewrite both with the same denominator (try the LCM of the bottoms), then compare the tops."
+          ]
         },
         {
           "type": "mcq",
@@ -532,9 +1426,32 @@
             "They are equal"
           ],
           "answer": "2/3",
-          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
           "explanation": "LCM(3, 5) = 15: 2/3 = 10/15, 3/5 = 9/15. So 2/3 is bigger.",
-          "id": "F_COMPARE.2"
+          "id": "F_COMPARE.2",
+          "misconceptions": [
+            {
+              "id": "equal_when_close",
+              "label": "Thinks the fractions are equal",
+              "responses": [
+                "They are equal"
+              ],
+              "probe": "Line them up on strips. Do they end at exactly the same place? How could you check precisely?",
+              "values": []
+            },
+            {
+              "id": "compares_numerators_only",
+              "label": "Compares numerators only",
+              "responses": [
+                "3/5"
+              ],
+              "probe": "3/5 has the bigger top number — but are its pieces the same size as the pieces of 2/3? Which pieces are bigger?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Imagine both fractions on fraction strips. Which shading would reach further?",
+            "Rewrite both with the same denominator (try the LCM of the bottoms), then compare the tops."
+          ]
         },
         {
           "type": "mcq",
@@ -545,9 +1462,32 @@
             "They are equal"
           ],
           "answer": "5/8",
-          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
           "explanation": "LCM(8, 12) = 24: 5/8 = 15/24, 7/12 = 14/24. So 5/8 is bigger.",
-          "id": "F_COMPARE.3"
+          "id": "F_COMPARE.3",
+          "misconceptions": [
+            {
+              "id": "equal_when_close",
+              "label": "Thinks the fractions are equal",
+              "responses": [
+                "They are equal"
+              ],
+              "probe": "Line them up on strips. Do they end at exactly the same place? How could you check precisely?",
+              "values": []
+            },
+            {
+              "id": "compares_numerators_only",
+              "label": "Compares numerators only",
+              "responses": [
+                "7/12"
+              ],
+              "probe": "7/12 has the bigger top number — but are its pieces the same size as the pieces of 5/8? Which pieces are bigger?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Imagine both fractions on fraction strips. Which shading would reach further?",
+            "Rewrite both with the same denominator (try the LCM of the bottoms), then compare the tops."
+          ]
         },
         {
           "type": "mcq",
@@ -558,9 +1498,32 @@
             "They are equal"
           ],
           "answer": "1/2",
-          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
           "explanation": "LCM(9, 2) = 18: 4/9 = 8/18, 1/2 = 9/18. So 1/2 is bigger.",
-          "id": "F_COMPARE.4"
+          "id": "F_COMPARE.4",
+          "misconceptions": [
+            {
+              "id": "equal_when_close",
+              "label": "Thinks the fractions are equal",
+              "responses": [
+                "They are equal"
+              ],
+              "probe": "Line them up on strips. Do they end at exactly the same place? How could you check precisely?",
+              "values": []
+            },
+            {
+              "id": "compares_numerators_only",
+              "label": "Compares numerators only",
+              "responses": [
+                "4/9"
+              ],
+              "probe": "4/9 has the bigger top number — but are its pieces the same size as the pieces of 1/2? Which pieces are bigger?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Imagine both fractions on fraction strips. Which shading would reach further?",
+            "Rewrite both with the same denominator (try the LCM of the bottoms), then compare the tops."
+          ]
         },
         {
           "type": "mcq",
@@ -571,9 +1534,32 @@
             "They are equal"
           ],
           "answer": "3/10",
-          "hint": "Rewrite both with a common denominator (the LCM of the bottoms).",
           "explanation": "LCM(10, 7) = 70: 3/10 = 21/70, 2/7 = 20/70. So 3/10 is bigger.",
-          "id": "F_COMPARE.5"
+          "id": "F_COMPARE.5",
+          "misconceptions": [
+            {
+              "id": "equal_when_close",
+              "label": "Thinks the fractions are equal",
+              "responses": [
+                "They are equal"
+              ],
+              "probe": "Line them up on strips. Do they end at exactly the same place? How could you check precisely?",
+              "values": []
+            },
+            {
+              "id": "smaller_denominator_always_bigger",
+              "label": "Thinks fewer, bigger pieces always means a bigger fraction",
+              "responses": [
+                "2/7"
+              ],
+              "probe": "It's true that 7ths are bigger pieces than 10ths. But 2/7 has 2 of them and 3/10 has 3. Which covers more of the strip?",
+              "values": []
+            }
+          ],
+          "hints": [
+            "Imagine both fractions on fraction strips. Which shading would reach further?",
+            "Rewrite both with the same denominator (try the LCM of the bottoms), then compare the tops."
+          ]
         },
         {
           "type": "free_text",
@@ -588,10 +1574,58 @@
             "3/4"
           ],
           "min_words": 8,
-          "hint": "Talk about a common denominator.",
-          "id": "F_COMPARE.6"
+          "id": "F_COMPARE.6",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Talk about a common denominator."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "Which is bigger: 3/4 of a roti or 5/6 of the same roti?",
+          "options": [
+            "3/4",
+            "5/6",
+            "They are the same"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            3,
+            4,
+            6,
+            12
+          ],
+          "prompt": "Build **3/4** on one strip and **5/6** on another. Compare where the shading ends. Then try a strip of 12 parts for each.",
+          "record": "Which was longer? How did the 12-part strips help you be sure?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "Which shading went further along the strip?"
+          },
+          {
+            "kind": "why",
+            "prompt": "5/6 has a bigger bottom number. Why can it still be bigger than 3/4?",
+            "followup": "Is a sixth of a roti a bigger or smaller piece than a quarter?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: how can you compare any two fractions fairly?"
+          }
+        ],
+        "explain": {
+          "activity": "L_COMPARE",
+          "revisit": "You predicted {prediction}. With twelfths: 3/4 = 9/12 and 5/6 = 10/12, so **5/6 is bigger** — by just one twelfth."
+        },
+        "connect": [
+          "Is 3/5 of the class or 2/3 of the class more students? Same idea.",
+          "Comparing two shops' discounts like '1/4 off' and '1/3 off'."
+        ],
+        "key_learning": "To compare fractions fairly, cut both into pieces of the same size (a common denominator), then compare the counts."
+      }
     },
     "F_ADD_UNLIKE": {
       "title": "Add & subtract: different denominators",
@@ -608,56 +1642,224 @@
           "prompt": "1/4 + 1/6 = ?  (simplest form)",
           "answer": "5/12",
           "form": "simplest",
-          "hint": "Find the LCM of 4 and 6 first, and rewrite both fractions.",
           "explanation": "LCM(4, 6) = 12. 1/4 = 3/12, 1/6 = 2/12. 3 + 2 = 5 → 5/12.",
-          "id": "F_ADD_UNLIKE.1"
+          "id": "F_ADD_UNLIKE.1",
+          "misconceptions": [
+            {
+              "id": "add_tops_and_bottoms",
+              "label": "Adds numerators and denominators",
+              "values": [
+                "1/5"
+              ],
+              "probe": "You wrote {response}. Is that bigger than 1/4, one of the fractions you started with? Adding should give you more. What's wrong with adding pieces of different sizes?"
+            }
+          ],
+          "hints": [
+            "Are 4ths and 6ths the same size of piece? What size of piece could both be cut into exactly?",
+            "Use 12ths: 1/4 = ?/12 and 1/6 = ?/12. Then add."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "2/3 + 1/5 = ?  (simplest form)",
           "answer": "13/15",
           "form": "simplest",
-          "hint": "Find the LCM of 3 and 5 first, and rewrite both fractions.",
           "explanation": "LCM(3, 5) = 15. 2/3 = 10/15, 1/5 = 3/15. 10 + 3 = 13 → 13/15.",
-          "id": "F_ADD_UNLIKE.2"
+          "id": "F_ADD_UNLIKE.2",
+          "misconceptions": [
+            {
+              "id": "add_tops_and_bottoms",
+              "label": "Adds numerators and denominators",
+              "values": [
+                "3/8"
+              ],
+              "probe": "You wrote {response}. Is that bigger than 2/3, one of the fractions you started with? Adding should give you more. What's wrong with adding pieces of different sizes?"
+            },
+            {
+              "id": "keeps_one_denominator",
+              "label": "Keeps one denominator without converting",
+              "values": [
+                "1",
+                "3/5"
+              ],
+              "probe": "You added the tops but kept one bottom number. But 1/5 is in 5ths, not 3ths — can you count them together before they are the same size?"
+            }
+          ],
+          "hints": [
+            "Are 3ths and 5ths the same size of piece? What size of piece could both be cut into exactly?",
+            "Use 15ths: 2/3 = ?/15 and 1/5 = ?/15. Then add."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "3/4 - 1/6 = ?  (simplest form)",
           "answer": "7/12",
           "form": "simplest",
-          "hint": "Find the LCM of 4 and 6 first, and rewrite both fractions.",
           "explanation": "LCM(4, 6) = 12. 3/4 = 9/12, 1/6 = 2/12. 9 - 2 = 7 → 7/12.",
-          "id": "F_ADD_UNLIKE.3"
+          "id": "F_ADD_UNLIKE.3",
+          "misconceptions": [
+            {
+              "id": "keeps_one_denominator",
+              "label": "Keeps one denominator without converting",
+              "values": [
+                "1/2",
+                "1/3"
+              ],
+              "probe": "You added the tops but kept one bottom number. But 1/6 is in 6ths, not 4ths — can you count them together before they are the same size?"
+            }
+          ],
+          "hints": [
+            "Are 4ths and 6ths the same size of piece? What size of piece could both be cut into exactly?",
+            "Use 12ths: 3/4 = ?/12 and 1/6 = ?/12. Then subtract."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "5/6 - 1/4 = ?  (simplest form)",
           "answer": "7/12",
           "form": "simplest",
-          "hint": "Find the LCM of 6 and 4 first, and rewrite both fractions.",
           "explanation": "LCM(6, 4) = 12. 5/6 = 10/12, 1/4 = 3/12. 10 - 3 = 7 → 7/12.",
-          "id": "F_ADD_UNLIKE.4"
+          "id": "F_ADD_UNLIKE.4",
+          "misconceptions": [
+            {
+              "id": "subtract_tops_and_bottoms",
+              "label": "Subtracts numerators and denominators",
+              "responses": [
+                "4/2"
+              ],
+              "probe": "You subtracted the bottoms too. Are 6ths and 4ths the same size of piece? What could you do first?",
+              "values": []
+            },
+            {
+              "id": "keeps_one_denominator",
+              "label": "Keeps one denominator without converting",
+              "values": [
+                "1",
+                "2/3"
+              ],
+              "probe": "You added the tops but kept one bottom number. But 1/4 is in 4ths, not 6ths — can you count them together before they are the same size?"
+            }
+          ],
+          "hints": [
+            "Are 6ths and 4ths the same size of piece? What size of piece could both be cut into exactly?",
+            "Use 12ths: 5/6 = ?/12 and 1/4 = ?/12. Then subtract."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "1/2 + 2/7 = ?  (simplest form)",
           "answer": "11/14",
           "form": "simplest",
-          "hint": "Find the LCM of 2 and 7 first, and rewrite both fractions.",
           "explanation": "LCM(2, 7) = 14. 1/2 = 7/14, 2/7 = 4/14. 7 + 4 = 11 → 11/14.",
-          "id": "F_ADD_UNLIKE.5"
+          "id": "F_ADD_UNLIKE.5",
+          "misconceptions": [
+            {
+              "id": "add_tops_and_bottoms",
+              "label": "Adds numerators and denominators",
+              "values": [
+                "1/3"
+              ],
+              "probe": "You wrote {response}. Is that bigger than 1/2, one of the fractions you started with? Adding should give you more. What's wrong with adding pieces of different sizes?"
+            },
+            {
+              "id": "keeps_one_denominator",
+              "label": "Keeps one denominator without converting",
+              "values": [
+                "3/2",
+                "3/7"
+              ],
+              "probe": "You added the tops but kept one bottom number. But 2/7 is in 7ths, not 2ths — can you count them together before they are the same size?"
+            }
+          ],
+          "hints": [
+            "Are 2ths and 7ths the same size of piece? What size of piece could both be cut into exactly?",
+            "Use 14ths: 1/2 = ?/14 and 2/7 = ?/14. Then add."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "7/8 - 1/3 = ?  (simplest form)",
           "answer": "13/24",
           "form": "simplest",
-          "hint": "Find the LCM of 8 and 3 first, and rewrite both fractions.",
           "explanation": "LCM(8, 3) = 24. 7/8 = 21/24, 1/3 = 8/24. 21 - 8 = 13 → 13/24.",
-          "id": "F_ADD_UNLIKE.6"
+          "id": "F_ADD_UNLIKE.6",
+          "misconceptions": [
+            {
+              "id": "subtract_tops_and_bottoms",
+              "label": "Subtracts numerators and denominators",
+              "responses": [
+                "6/5"
+              ],
+              "probe": "You subtracted the bottoms too. Are 8ths and 3ths the same size of piece? What could you do first?",
+              "values": []
+            },
+            {
+              "id": "keeps_one_denominator",
+              "label": "Keeps one denominator without converting",
+              "values": [
+                "2",
+                "3/4"
+              ],
+              "probe": "You added the tops but kept one bottom number. But 1/3 is in 3ths, not 8ths — can you count them together before they are the same size?"
+            }
+          ],
+          "hints": [
+            "Are 8ths and 3ths the same size of piece? What size of piece could both be cut into exactly?",
+            "Use 24ths: 7/8 = ?/24 and 1/3 = ?/24. Then subtract."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "Is 1/2 + 1/3 more than 1 whole, less than 1, or exactly 1?",
+          "options": [
+            "More than 1",
+            "Exactly 1",
+            "Less than 1"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            2,
+            3,
+            4,
+            6,
+            8,
+            12
+          ],
+          "prompt": "Build **1/4** and **1/6** on two strips. Can you add them yet? Look for another strip whose pieces fit exactly into *both* a quarter and a sixth.",
+          "record": "Which strip helped? What is 1/4 + 1/6 in those pieces?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "How many twelfths did 1/4 cover? How many did 1/6 cover?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why can't we just add 1/4 + 1/6 as 2/10?",
+            "followup": "Is 2/10 bigger or smaller than 1/4, which you started with?"
+          },
+          {
+            "kind": "where_else",
+            "prompt": "Where else do you have to change things into the same unit before adding them?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: what are the steps to add fractions with different denominators?"
+          }
+        ],
+        "explain": {
+          "activity": "L_ADD_UNLIKE",
+          "revisit": "You predicted {prediction}. 1/2 + 1/3 = 3/6 + 2/6 = 5/6 — **less than 1**."
+        },
+        "connect": [
+          "Adding 1 rupee and 50 paise: change to paise first (100 + 50).",
+          "Adding 1/2 kg of tomatoes and 1/4 kg of onions: 2/4 + 1/4 = 3/4 kg in the bag."
+        ],
+        "key_learning": "Before adding, make the pieces the same size by finding a common denominator."
+      }
     },
     "F_MULTIPLY": {
       "title": "Multiplying fractions",
@@ -672,56 +1874,177 @@
           "prompt": "2/3 × 3/4 = ?  (simplest form)",
           "answer": "1/2",
           "form": "simplest",
-          "hint": "Multiply top × top and bottom × bottom, then simplify.",
           "explanation": "(2×3)/(3×4) = 6/12 → 1/2.",
-          "id": "F_MULTIPLY.1"
+          "id": "F_MULTIPLY.1",
+          "misconceptions": [
+            {
+              "id": "cross_multiplies",
+              "label": "Cross-multiplies (mixes up with dividing)",
+              "values": [
+                "8/9"
+              ],
+              "probe": "It looks like you multiplied diagonally. Think of 'half of 3/4' on a strip — which numbers get multiplied together?"
+            }
+          ],
+          "hints": [
+            "Should the answer be bigger or smaller than 2/3? Why?",
+            "Multiply the tops together and the bottoms together, then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "1/2 × 4/5 = ?  (simplest form)",
           "answer": "2/5",
           "form": "simplest",
-          "hint": "Multiply top × top and bottom × bottom, then simplify.",
           "explanation": "(1×4)/(2×5) = 4/10 → 2/5.",
-          "id": "F_MULTIPLY.2"
+          "id": "F_MULTIPLY.2",
+          "misconceptions": [
+            {
+              "id": "cross_multiplies",
+              "label": "Cross-multiplies (mixes up with dividing)",
+              "values": [
+                "5/8"
+              ],
+              "probe": "It looks like you multiplied diagonally. Think of 'half of 3/4' on a strip — which numbers get multiplied together?"
+            }
+          ],
+          "hints": [
+            "Should the answer be bigger or smaller than 1/2? Why?",
+            "Multiply the tops together and the bottoms together, then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "3/5 × 5/6 = ?  (simplest form)",
           "answer": "1/2",
           "form": "simplest",
-          "hint": "Multiply top × top and bottom × bottom, then simplify.",
           "explanation": "(3×5)/(5×6) = 15/30 → 1/2.",
-          "id": "F_MULTIPLY.3"
+          "id": "F_MULTIPLY.3",
+          "misconceptions": [
+            {
+              "id": "cross_multiplies",
+              "label": "Cross-multiplies (mixes up with dividing)",
+              "values": [
+                "18/25"
+              ],
+              "probe": "It looks like you multiplied diagonally. Think of 'half of 3/4' on a strip — which numbers get multiplied together?"
+            }
+          ],
+          "hints": [
+            "Should the answer be bigger or smaller than 3/5? Why?",
+            "Multiply the tops together and the bottoms together, then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "4/7 × 1/2 = ?  (simplest form)",
           "answer": "2/7",
           "form": "simplest",
-          "hint": "Multiply top × top and bottom × bottom, then simplify.",
           "explanation": "(4×1)/(7×2) = 4/14 → 2/7.",
-          "id": "F_MULTIPLY.4"
+          "id": "F_MULTIPLY.4",
+          "misconceptions": [
+            {
+              "id": "cross_multiplies",
+              "label": "Cross-multiplies (mixes up with dividing)",
+              "values": [
+                "8/7"
+              ],
+              "probe": "It looks like you multiplied diagonally. Think of 'half of 3/4' on a strip — which numbers get multiplied together?"
+            }
+          ],
+          "hints": [
+            "Should the answer be bigger or smaller than 4/7? Why?",
+            "Multiply the tops together and the bottoms together, then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "3 × 2/9 = ?  (simplest form)",
           "answer": "2/3",
           "form": "simplest",
-          "hint": "Multiply top × top and bottom × bottom, then simplify.",
           "explanation": "(3×2)/(1×9) = 6/9 → 2/3.",
-          "id": "F_MULTIPLY.5"
+          "id": "F_MULTIPLY.5",
+          "misconceptions": [
+            {
+              "id": "cross_multiplies",
+              "label": "Cross-multiplies (mixes up with dividing)",
+              "values": [
+                "27/2"
+              ],
+              "probe": "It looks like you multiplied diagonally. Think of 'half of 3/4' on a strip — which numbers get multiplied together?"
+            }
+          ],
+          "hints": [
+            "Should the answer be bigger or smaller than 3? Why?",
+            "Multiply the tops together and the bottoms together, then simplify."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "5/8 × 2/5 = ?  (simplest form)",
           "answer": "1/4",
           "form": "simplest",
-          "hint": "Multiply top × top and bottom × bottom, then simplify.",
           "explanation": "(5×2)/(8×5) = 10/40 → 1/4.",
-          "id": "F_MULTIPLY.6"
+          "id": "F_MULTIPLY.6",
+          "misconceptions": [
+            {
+              "id": "cross_multiplies",
+              "label": "Cross-multiplies (mixes up with dividing)",
+              "values": [
+                "25/16"
+              ],
+              "probe": "It looks like you multiplied diagonally. Think of 'half of 3/4' on a strip — which numbers get multiplied together?"
+            }
+          ],
+          "hints": [
+            "Should the answer be bigger or smaller than 5/8? Why?",
+            "Multiply the tops together and the bottoms together, then simplify."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "predict": {
+          "prompt": "A bottle is 3/4 full. You drink half of the water in it. Will the amount you drank be more or less than 3/4 of a bottle?",
+          "options": [
+            "More than 3/4",
+            "Less than 3/4",
+            "Exactly 3/4"
+          ]
+        },
+        "explore": {
+          "tool": "fraction_strips",
+          "strips": [
+            2,
+            4,
+            8
+          ],
+          "prompt": "Build **3/4** on a strip. Now find *half of that shaded part*. Try a strip of 8 parts to see it exactly.",
+          "record": "What is half of 3/4? How did you work it out?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "Was half of 3/4 more or less than 3/4?"
+          },
+          {
+            "kind": "why",
+            "prompt": "Why does multiplying by 1/2 give a *smaller* answer, when multiplying whole numbers usually gives a bigger one?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: what does '1/2 × 3/4' mean, and how do you work it out?"
+          }
+        ],
+        "explain": {
+          "activity": "L_MULTIPLY",
+          "revisit": "You predicted {prediction}. Half of 3/4 is 3/8 — **less** than 3/4. 'Of' means multiply: 1/2 × 3/4 = 3/8."
+        },
+        "connect": [
+          "'Half of the 3/4 kg of sugar' is used in the payasam: 3/8 kg.",
+          "If 2/3 of students take the bus and half of those sit upstairs, 1/3 of all students sit upstairs."
+        ],
+        "key_learning": "Multiplying by a fraction takes a part *of* an amount: multiply the tops and multiply the bottoms."
+      }
     },
     "F_WORD": {
       "title": "Fraction word problems",
@@ -737,45 +2060,60 @@
           "prompt": "Riya drank 1/3 of a bottle of water in the morning and 1/4 in the evening. What fraction of the bottle did she drink altogether?",
           "answer": "7/12",
           "form": "simplest",
-          "hint": "'Altogether' means add.",
           "explanation": "Answer: 7/12.",
-          "id": "F_WORD.1"
+          "id": "F_WORD.1",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "'Altogether' means add."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "A ribbon is 3/4 m long. Asha cuts off 1/3 m. How long is the ribbon now (in m)?",
           "answer": "5/12",
           "form": "simplest",
-          "hint": "'Cuts off' means subtract.",
           "explanation": "Answer: 5/12.",
-          "id": "F_WORD.2"
+          "id": "F_WORD.2",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "'Cuts off' means subtract."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "2/5 of the 30 students in a class walk to school. How many students walk? (whole number)",
           "answer": "12",
           "form": "simplest",
-          "hint": "'of' means multiply.",
           "explanation": "Answer: 12.",
-          "id": "F_WORD.3"
+          "id": "F_WORD.3",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "'of' means multiply."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "A farmer plants rice on 1/2 of his field and wheat on 1/3. What fraction of the field is left for vegetables?",
           "answer": "1/6",
           "form": "simplest",
-          "hint": "The whole field is 1. Subtract both parts.",
           "explanation": "Answer: 1/6.",
-          "id": "F_WORD.4"
+          "id": "F_WORD.4",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "The whole field is 1. Subtract both parts."
+          ]
         },
         {
           "type": "fraction",
           "prompt": "Each glass holds 2/3 of a cup of milk. How many cups are needed to fill 6 glasses?",
           "answer": "4",
           "form": "simplest",
-          "hint": "Multiply the amount per glass by the number of glasses.",
           "explanation": "Answer: 4.",
-          "id": "F_WORD.5"
+          "id": "F_WORD.5",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Multiply the amount per glass by the number of glasses."
+          ]
         },
         {
           "type": "free_text",
@@ -785,10 +2123,47 @@
             "/"
           ],
           "min_words": 15,
-          "hint": "Think of sharing food or pouring water.",
-          "id": "F_WORD.6"
+          "id": "F_WORD.6",
+          "hints": [
+            "What is the question really asking? What is the whole, and what are the parts?",
+            "Think of sharing food or pouring water."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "elicit": [
+          {
+            "prompt": "Think of a time at home or in the market when you used halves or quarters. What were you working out?"
+          }
+        ],
+        "explore": {
+          "tool": "problem",
+          "prompt": "Try this before any help.",
+          "problem": "Meena's family buys **3/4 kg** of rice. They cook **1/3 kg** for lunch and **1/4 kg** for dinner. Is there any rice left? If yes, how much?",
+          "record": "Show how you solved it. What did you do first?"
+        },
+        "probe": [
+          {
+            "kind": "observe",
+            "prompt": "What was the 'whole' in Meena's problem? What were the parts?"
+          },
+          {
+            "kind": "why",
+            "prompt": "How did you decide whether to add, subtract or multiply?"
+          },
+          {
+            "kind": "summarise",
+            "prompt": "In your own words: what steps help you solve a fraction word problem?"
+          }
+        ],
+        "explain": {
+          "activity": "L_WORD"
+        },
+        "connect": [
+          "Sharing travel costs, splitting a field among crops, reading a recipe — all fraction problems."
+        ],
+        "key_learning": "Find the whole, find the parts, then choose the operation from what the story asks."
+      }
     }
   },
   "units": [
@@ -804,5 +2179,6 @@
         "F_WORD"
       ]
     }
-  ]
+  ],
+  "pedagogy": "inquiry"
 }

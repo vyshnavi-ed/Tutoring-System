@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS attempts (
     student_id TEXT, pack_id TEXT, set_id TEXT, item_id TEXT, item_type TEXT,
     response TEXT, score REAL, passed INTEGER, feedback TEXT, needs_review INTEGER, ts REAL
 );
+CREATE TABLE IF NOT EXISTS responses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id TEXT, pack_id TEXT, set_id TEXT, phase TEXT, kind TEXT, prompt TEXT, response TEXT,
+    is_followup INTEGER, ts REAL
+);
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id TEXT, pack_id TEXT, kind TEXT, payload TEXT, ts REAL
@@ -61,7 +66,7 @@ class Store:
         )
 
     def delete_session(self, student_id, pack_id):
-        for t in ("sessions", "attempts", "events", "alerts"):
+        for t in ("sessions", "attempts", "events", "alerts", "responses"):
             self._exec(f"DELETE FROM {t} WHERE student_id=? AND pack_id=?", (student_id, pack_id))
 
     def sessions(self):
@@ -88,6 +93,29 @@ class Store:
         for r in rows:
             r["payload"] = json.loads(r["payload"])
         return rows
+
+    # ungraded episode responses (predictions, observations, explanations)
+    def add_response(self, student_id, pack_id, set_id, phase, kind, prompt, response, is_followup):
+        self._exec("INSERT INTO responses (student_id, pack_id, set_id, phase, kind, prompt, response, is_followup, ts)"
+                   " VALUES (?,?,?,?,?,?,?,?,?)",
+                   (student_id, pack_id, set_id, phase, kind, prompt, response, int(is_followup), time.time()))
+
+    def responses(self, student_id=None, pack_id=None):
+        sql, args = "SELECT * FROM responses WHERE 1=1", []
+        if student_id:
+            sql += " AND student_id=?"; args.append(student_id)
+        if pack_id:
+            sql += " AND pack_id=?"; args.append(pack_id)
+        return self._rows(sql + " ORDER BY id", tuple(args))
+
+    def misconception_counts(self, pack_id):
+        rows = self._rows("SELECT student_id, payload FROM events WHERE pack_id=? AND kind='misconception'", (pack_id,))
+        out = {}
+        for r in rows:
+            p = json.loads(r["payload"])
+            k = (p["set_id"], p["misconception"])
+            out.setdefault(k, set()).add(r["student_id"])
+        return [{"set_id": k[0], "misconception": k[1], "students": sorted(v)} for k, v in out.items()]
 
     # alerts
     def has_open_alert(self, student_id, pack_id, kind, set_id):

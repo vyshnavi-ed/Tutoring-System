@@ -17,9 +17,11 @@ class Strategy:
     name = "base"
     description = ""
 
-    def __init__(self, pack):
+    def __init__(self, pack, pedagogy=None):
+        from ..pedagogy import PEDAGOGIES
         self.pack = pack
         self.cfg = pack.config
+        self.ped = pedagogy or PEDAGOGIES[pack.pedagogy](pack)
 
     # ---- to implement
     def init_state(self) -> dict:
@@ -39,11 +41,21 @@ class Strategy:
         """Teacher-facing snapshot of where the student is (the 'student module')."""
         return {}
 
+    def allow_retry(self, state: dict) -> bool:
+        """May the pedagogy give hints and let the student retry the current item?
+        False for quick diagnostic checks, where a hint would hide the gap."""
+        return True
+
     def pick_item_index(self, state: dict, set_id: str) -> int | None:
         """Optionally force which item (by position) to ask. None = random unused item."""
         return None
 
     # ---- helpers
+    def teach(self, state, set_id, mode="intro", reason="", activity_id=None):
+        """Hand teaching to the pack's pedagogy. mode: intro | gap | descend (full episode)
+        or reteach | restudy | lapse (short re-investigation)."""
+        self.ped.teach(state, set_id, mode, reason, activity_id)
+
     @staticmethod
     def queue_activity(state, activity_id, reason=""):
         if activity_id:
