@@ -199,3 +199,49 @@ def test_buddy_api_demo_mode(tmp_path):
     rows = c.get("/api/teacher/buddy").json()
     assert rows[0]["student"] == "Asha" and rows[0]["levels"]["observing"]
     assert c.get("/buddy").status_code == 200
+
+
+def test_model_without_forced_tool_choice_falls_back_to_auto():
+    from types import SimpleNamespace as NS
+    from tutor.buddy.llm import AnthropicLLM
+
+    class Client:
+        def __init__(self):
+            self.kinds = []
+            self.messages = self
+
+        def create(self, **kw):
+            self.kinds.append(kw["tool_choice"]["type"])
+            if kw["tool_choice"]["type"] == "tool":
+                raise Exception('Error code: 400 - tool_choice: type "tool" and "any" are not supported for this model.')
+            return NS(content=[NS(type="tool_use", input={"reply": "Ooh! What exactly did you see?"})])
+
+    llm = AnthropicLLM.__new__(AnthropicLLM)
+    llm.client, llm.model, llm.force_tool = Client(), "m", True
+    assert llm.respond("sys", [{"role": "user", "content": "hi"}])["reply"].startswith("Ooh")
+    assert llm.respond("sys", [{"role": "user", "content": "hi"}])
+    assert llm.client.kinds == ["tool", "auto", "auto"]           # remembers not to force again
+
+
+def test_plain_text_reply_is_parsed():
+    from tutor.buddy.llm import parse_text_reply
+    assert parse_text_reply('Sure: {"reply": "What else?", "evidence": []}')["reply"] == "What else?"
+    assert parse_text_reply("What did you notice?") == {"reply": "What did you notice?"}
+
+
+def test_connection_problem_is_clear_and_alerts_teacher(mk):
+    class Broken:
+        demo = False
+
+        def respond(self, system, messages):
+            raise Exception("Error code: 401 - Invalid bearer token")
+
+    b, _ = mk()
+    b.llm = Broken()
+    consented(b)
+    v = b.start("Asha")
+    assert "can't connect" in v["turns"][-1]["text"]
+    b.message("Asha", "I saw a purple plant")
+    al = [a for a in b.store.alerts() if a["kind"] == "system"]
+    assert len(al) == 1 and "401" in al[0]["details"]["error"]
+    assert not b.profile("Asha")["skills"]["observing"]["assessed"]

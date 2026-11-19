@@ -47,7 +47,7 @@ async function alerts() {
   view.innerHTML = list.map(a => `
     <div class="panel alert-card ${a.kind}" style="margin-bottom:12px">
       <div class="row">
-        <span class="badge ${a.kind === "stuck" ? "warn" : a.kind === "wellbeing" ? "bad" : ""}">${a.kind === "stuck" ? "Stuck" : a.kind === "wellbeing" ? "Wellbeing — please review" : "Answer to review"}</span>
+        <span class="badge ${a.kind === "stuck" ? "warn" : a.kind === "wellbeing" ? "bad" : ""}">${a.kind === "stuck" ? "Stuck" : a.kind === "wellbeing" ? "Wellbeing — please review" : a.kind === "system" ? "Technical problem" : "Answer to review"}</span>
         <b>${esc(a.student_id)}</b><span class="muted small">${esc(packTitle(a.pack_id))} · ${ago(a.ts)}</span>
         <span style="margin-left:auto"></span>
         <button class="link" data-open="${esc(a.student_id)}|${esc(a.pack_id)}">View path</button>
@@ -55,6 +55,7 @@ async function alerts() {
       </div>
       <div style="margin-top:8px">${esc(a.message)}</div>
       ${a.kind === "wellbeing" ? `<pre class="resp">${esc(a.details.excerpt || "")}</pre>` : ""}
+      ${a.kind === "system" ? `<pre class="resp">${esc(a.details.error || "")}</pre>` : ""}
       ${a.kind === "review" ? `<div class="small muted" style="margin-top:8px">${md(a.details.prompt)}</div>
         <pre class="resp">${esc(a.details.response)}</pre>
         <div class="small muted">Provisional score: ${a.details.provisional_score}</div>` : ""}

@@ -59,16 +59,40 @@ class AnthropicLLM:
         import anthropic
         self.client = anthropic.Anthropic()
         self.model = model or os.environ.get("TUTOR_BUDDY_MODEL", "claude-sonnet-5-5")
+        self.force_tool = True  # some models don't allow forcing a tool; we fall back to "auto"
+
+    def _create(self, system, messages):
+        kw = dict(model=self.model, max_tokens=1200, system=system, messages=messages, tools=[RESPOND_TOOL])
+        kw["tool_choice"] = {"type": "tool", "name": "respond"} if self.force_tool else {"type": "auto"}
+        return self.client.messages.create(**kw)
 
     def respond(self, system: str, messages: list[dict]) -> dict:
-        msg = self.client.messages.create(
-            model=self.model, max_tokens=1200, system=system, messages=messages,
-            tools=[RESPOND_TOOL], tool_choice={"type": "tool", "name": "respond"})
+        try:
+            msg = self._create(system, messages)
+        except Exception as e:
+            if self.force_tool and "tool_choice" in str(e):
+                self.force_tool = False
+                msg = self._create(system, messages)
+            else:
+                raise
         for block in msg.content:
             if getattr(block, "type", "") == "tool_use":
                 return dict(block.input)
-        text = "".join(getattr(b, "text", "") for b in msg.content)
-        return {"reply": text}
+        return parse_text_reply("".join(getattr(b, "text", "") for b in msg.content))
+
+
+def parse_text_reply(text: str) -> dict:
+    """The model answered in plain text instead of calling the tool: use JSON if present, else the text."""
+    import json
+    text = (text or "").strip()
+    if "{" in text and '"reply"' in text:
+        try:
+            data = json.loads(text[text.find("{"): text.rfind("}") + 1])
+            if isinstance(data, dict) and data.get("reply"):
+                return data
+        except ValueError:
+            pass
+    return {"reply": text}
 
 
 class DemoLLM:

@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS buddy_turns (
     text TEXT, ts REAL, meta TEXT);
 """
 
+CONNECTION_PROBLEM = ("Oops — I can't connect to my brain right now, so I can't reply properly. "
+                      "Please tell your teacher or a grown-up. Your message is saved.")
 FALLBACK = "Hmm, let's think about that a different way. What did you notice?"
 CARE_REPLY = ("I'm really sorry that's happening. Please tell a grown-up you trust — a parent, teacher or school "
               "counsellor — today. You don't have to deal with this alone.")
@@ -170,8 +172,11 @@ class Buddy:
             prev[0]["ended_label"] = "earlier today" if days < 1 else f"{int(days)} day(s) ago"
         system = build_system(profile, sess["focus"], prev, demo=getattr(self.llm, "demo", False))
         msgs = self._messages(self._turns(sess["id"]))
-        out = self._call(system, msgs)
+        out = self._call(system, msgs, student_id)
         reply = out.get("reply") or FALLBACK
+        if out.get("_error"):
+            self._add_turn(sess["id"], student_id, "tutor", reply, {"error": True, "focus": sess["focus"]})
+            return out
         problem = guards.unsafe_suggestion(reply) and f"suggested something unsafe ({guards.unsafe_suggestion(reply)})" \
             or (guards.claims_human(reply) and "claimed to be a person or to have a family/body")
         regenerated = None
@@ -179,7 +184,7 @@ class Buddy:
             regenerated = problem
             note = {"role": "user", "content": f"[system check: your draft reply was blocked because it {problem}. "
                                                f"Draft: “{reply}”. Write a different, safe reply.]"}
-            out2 = self._call(system, msgs + ([note] if msgs[-1]["role"] == "assistant" else
+            out2 = self._call(system, student_id=student_id, msgs=msgs + ([note] if msgs[-1]["role"] == "assistant" else
                                               [{"role": "assistant", "content": reply}, note]))
             reply2 = out2.get("reply") or ""
             if reply2 and not guards.unsafe_suggestion(reply2) and not guards.claims_human(reply2):
@@ -203,12 +208,16 @@ class Buddy:
             self.store.add_event(student_id, PACK_ID, "reply_blocked", {"reason": regenerated, "session": sess["id"]})
         return out
 
-    def _call(self, system, msgs):
+    def _call(self, system, msgs, student_id=None):
         try:
             return self.llm.respond(system, msgs) or {}
-        except Exception as e:  # network/API problems: keep the child moving, log for the teacher
-            self.store.add_event("system", PACK_ID, "llm_error", {"error": str(e)[:300]})
-            return {"reply": "Sorry, I lost my train of thought for a second. Can you tell me that again?"}
+        except Exception as e:  # network/API problems: say so plainly and tell the teacher
+            err = str(e)[:400]
+            self.store.add_event("system", PACK_ID, "llm_error", {"error": err})
+            if student_id and not self.store.has_open_alert(student_id, PACK_ID, "system", None):
+                self.store.add_alert(student_id, PACK_ID, "system", None,
+                                     "The Science Buddy couldn't reach the AI service.", {"error": err})
+            return {"reply": CONNECTION_PROBLEM, "_error": True}
 
     # ------------------------------------------------------------ assessment + inquiry records
     def _apply(self, student_id, sess, profile, out, learner_text):
