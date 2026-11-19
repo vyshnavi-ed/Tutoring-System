@@ -16,6 +16,7 @@
     <button data-tab="alerts" class="active">Alerts <span id="alert-count"></span></button>
     <button data-tab="students">Students</button>
     <button data-tab="packs">Content packs</button>
+    <button data-tab="buddy">Science Buddy</button>
   </div>
   <div id="view"></div>
 </main>
@@ -23,7 +24,7 @@
 <script>
 const view = document.getElementById("view");
 let packs = [];
-const packTitle = id => (packs.find(p => p.id === id) || {}).title || id;
+const packTitle = id => id === "science_buddy" ? "Science Buddy" : ((packs.find(p => p.id === id) || {}).title || id);
 
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => show(b.dataset.tab));
 
@@ -31,7 +32,7 @@ async function show(tab) {
   document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
   packs = await api.get("/api/packs");
   refreshCount();
-  ({ alerts, students, packs: packsTab })[tab]();
+  ({ alerts, students, packs: packsTab, buddy: buddyTab })[tab]();
 }
 
 async function refreshCount() {
@@ -46,13 +47,14 @@ async function alerts() {
   view.innerHTML = list.map(a => `
     <div class="panel alert-card ${a.kind}" style="margin-bottom:12px">
       <div class="row">
-        <span class="badge ${a.kind === "stuck" ? "warn" : ""}">${a.kind === "stuck" ? "Stuck" : "Answer to review"}</span>
+        <span class="badge ${a.kind === "stuck" ? "warn" : a.kind === "wellbeing" ? "bad" : ""}">${a.kind === "stuck" ? "Stuck" : a.kind === "wellbeing" ? "Wellbeing — please review" : "Answer to review"}</span>
         <b>${esc(a.student_id)}</b><span class="muted small">${esc(packTitle(a.pack_id))} · ${ago(a.ts)}</span>
         <span style="margin-left:auto"></span>
         <button class="link" data-open="${esc(a.student_id)}|${esc(a.pack_id)}">View path</button>
         <button data-resolve="${a.id}">Resolve</button>
       </div>
       <div style="margin-top:8px">${esc(a.message)}</div>
+      ${a.kind === "wellbeing" ? `<pre class="resp">${esc(a.details.excerpt || "")}</pre>` : ""}
       ${a.kind === "review" ? `<div class="small muted" style="margin-top:8px">${md(a.details.prompt)}</div>
         <pre class="resp">${esc(a.details.response)}</pre>
         <div class="small muted">Provisional score: ${a.details.provisional_score}</div>` : ""}
@@ -63,7 +65,7 @@ async function alerts() {
     await api.post(`/api/teacher/alerts/${b.dataset.resolve}/resolve`, { note });
     alerts(); refreshCount();
   });
-  view.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { const [s, p] = b.dataset.open.split("|"); detail(s, p); });
+  view.querySelectorAll("[data-open]").forEach(b => b.onclick = () => { const [s, p] = b.dataset.open.split("|"); p === "science_buddy" ? buddyDetail(s) : detail(s, p); });
 }
 
 // ---------------------------------------------------------------- students
@@ -226,6 +228,58 @@ async function reviewPack(id) {
       </details>
     </div>`).join("");
   box.innerHTML = val + `<div style="margin-bottom:10px">${units}</div>` + sets;
+}
+
+// ---------------------------------------------------------------- Science Buddy
+const SKILLS = [["observing", "Observing"], ["classifying", "Classifying"], ["measuring", "Measuring"], ["communicating", "Communicating"],
+  ["inferring", "Inferring"], ["predicting", "Predicting"], ["questioning", "Questioning"], ["controlling_variables", "Controlling variables"],
+  ["hypothesising", "Hypothesising"], ["defining_operationally", "Defining operationally"], ["experimenting", "Experimenting"],
+  ["interpreting_data", "Interpreting data"]];
+const LV = { emerging: ["E", "warn", "Emerging"], developing: ["D", "", "Developing"], independent: ["I", "ok", "Independent"] };
+const chip = l => l ? `<span class="badge ${LV[l][1]}" title="${LV[l][2]}">${LV[l][0]}</span>` : `<span class="muted">—</span>`;
+
+async function buddyTab() {
+  const rows = await api.get("/api/teacher/buddy");
+  if (!rows.length) { view.innerHTML = `<div class="panel empty">No learners have used the Science Buddy yet.</div>`; return; }
+  view.innerHTML = `<div class="panel" style="overflow-x:auto"><p class="small muted" style="margin-top:0">E = Emerging · D = Developing · I = Independent · — = no evidence yet. Basic skills first, then integrated.</p>
+    <table><tr><th>Learner</th><th>Class</th>${SKILLS.map(([, n]) => `<th style="writing-mode:vertical-rl;transform:rotate(180deg);height:120px">${n}</th>`).join("")}<th>Inquiries</th></tr>
+    ${rows.map(r => `<tr class="click" data-s="${esc(r.student)}"><td><b>${esc(r.student)}</b></td><td>${r.grade || "—"}</td>
+      ${SKILLS.map(([k]) => `<td>${chip(r.levels[k])}</td>`).join("")}<td>${r.inquiries}</td></tr>`).join("")}</table></div>`;
+  view.querySelectorAll("tr.click").forEach(tr => tr.onclick = () => buddyDetail(tr.dataset.s));
+}
+
+async function buddyDetail(student) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === "buddy"));
+  const d = await api.get(`/api/teacher/buddy/${encodeURIComponent(student)}`);
+  const p = d.profile;
+  const name = Object.fromEntries(SKILLS);
+  const skillRows = SKILLS.map(([k, n]) => {
+    const s = p.skills[k];
+    return `<tr><td><b>${n}</b></td><td>${s.assessed ? chip(s.level) + " " + LV[s.level][2] : chip(null)}</td>
+      <td class="small">${s.evidence.map(e => `“${esc(e.quote)}” <span class="muted">(${e.signal})</span>`).join("<br>") || ""}</td>
+      <td class="small">${s.history.map(h => `${LV[h.from][2]} → <b>${LV[h.to][2]}</b>: ${esc(h.reason)} <span class="muted">· session ${h.session} · ${ago(h.ts)}</span>`).join("<br>")}</td></tr>`;
+  }).join("");
+  const inq = p.inquiries.slice().reverse().map(i => `<div class="set-block">
+      <div class="row"><b>${esc(i.title || "Untitled inquiry")}</b><span class="badge ${i.status === "done" ? "ok" : "grey"}">${i.status}</span><span class="badge grey">stage: ${esc(i.stage)}</span></div>
+      ${i.question ? `<div class="small">Question: ${esc(i.question)}</div>` : ""}
+      ${i.task ? `<div class="small">Task: ${esc(i.task)}</div>` : ""}
+      ${(i.chapters || []).length ? `<div class="small muted">Syllabus: ${i.chapters.map(c => esc(d.chapters[c] || c)).join("; ")}</div>` : ""}
+      ${i.self_assessment ? `<div class="small">Self-assessment — easiest: ${esc(i.self_assessment.easiest || "—")}; hardest: ${esc(i.self_assessment.hardest || "—")}</div>` : ""}</div>`).join("");
+  const sess = d.sessions.map(s => `<details style="margin:8px 0"><summary>Session ${s.id} · ${new Date(s.started * 1000).toLocaleString()} · focus: <b>${esc(name[s.focus] || s.focus)}</b>${s.closed ? "" : " · (open)"}</summary>
+      <div style="margin:8px 0 0 10px">${s.turns.filter(t => t.role !== "event").map(t => `<div class="small" style="margin:6px 0">
+        <b>${t.role === "tutor" ? "Buddy" : esc(student)}:</b> ${esc(t.text)}
+        ${t.role === "tutor" && t.meta.ladder_step ? `<span class="badge grey">ladder step ${t.meta.ladder_step}</span>` : ""}
+        ${t.meta.skill_named ? `<span class="badge ok">named: ${esc(t.meta.skill_named)}</span>` : ""}
+        ${t.meta.regenerated ? `<span class="badge bad" title="The first draft was blocked">blocked draft: ${esc(t.meta.regenerated)}</span>` : ""}
+        ${t.meta.wellbeing_match ? `<span class="badge bad">wellbeing flag</span>` : ""}</div>`).join("")}</div></details>`).join("");
+  view.innerHTML = `<button class="link" id="back">← All learners</button>
+    <div class="panel" style="margin:10px 0 16px"><h2 style="margin-top:0">${esc(student)} · Science Buddy</h2>
+      <p class="small muted" style="margin-top:-8px">Class ${p.grade || "?"} · consent: ${p.consent ? `${esc(p.consent.by)} (${esc(p.consent.relation)}), ${new Date(p.consent.ts * 1000).toLocaleDateString()} — ${esc(p.consent.method)}` : "none"}</p>
+      <table><tr><th>Skill</th><th>Level</th><th>Last two pieces of evidence</th><th>Level changes (with reasons)</th></tr>${skillRows}</table></div>
+    <div class="panel" style="margin-bottom:16px"><h3 style="margin-top:0">Inquiries</h3>${inq || `<p class="muted small">None yet.</p>`}
+      ${p.achievements.length ? `<h4>What the learner was told they can now do</h4><ul>${p.achievements.map(a => `<li class="small">${esc(a.text)}</li>`).join("")}</ul>` : ""}</div>
+    <div class="panel"><h3 style="margin-top:0">Conversations</h3>${sess || `<p class="muted small">None yet.</p>`}</div>`;
+  document.getElementById("back").onclick = buddyTab;
 }
 
 show("alerts");

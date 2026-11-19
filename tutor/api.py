@@ -14,6 +14,7 @@ from fastapi import Body, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from .buddy.engine import Buddy, ConsentRequired
 from .engine import Engine
 from .pack import load_packs
 from .store import Store
@@ -30,12 +31,15 @@ def _sid(student: str) -> str:
     return s
 
 
-def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, engine: Engine | None = None) -> FastAPI:
+def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, engine: Engine | None = None,
+               buddy_llm=None) -> FastAPI:
     packs_dir = Path(packs_dir or os.environ.get("TUTOR_PACKS", ROOT.parent / "packs"))
     store = Store(db_path or os.environ.get("TUTOR_DB", str(ROOT.parent / "tutor.db")))
     eng = engine or Engine(load_packs(packs_dir), store)
     app = FastAPI(title="Multi-strategy tutor")
     app.state.engine = eng
+    buddy = Buddy(store, llm=buddy_llm)
+    app.state.buddy = buddy
 
     def pack_or_404(pack_id, student_facing=False):
         pack = eng.packs.get(pack_id)
@@ -153,6 +157,57 @@ def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, 
                 "attempts": eng.store.attempts(student, pack_id),
                 "responses": eng.store.responses(student, pack_id),
                 "events": eng.store.events(student, pack_id)}
+
+    # ---------------- Science Buddy (open inquiry conversation)
+    @app.get("/buddy", include_in_schema=False)
+    def buddy_page():
+        return FileResponse(STATIC / "buddy.html")
+
+    def _buddy(fn, *a):
+        try:
+            return fn(*a)
+        except ConsentRequired:
+            raise HTTPException(403, "parental consent needed")
+
+    @app.get("/api/buddy/{student}/status")
+    def buddy_status(student: str):
+        p = buddy.profile(_sid(student))
+        return {"consent": bool(p.get("consent")), "grade": p.get("grade"), "demo": getattr(buddy.llm, "demo", False)}
+
+    @app.post("/api/buddy/{student}/consent")
+    def buddy_consent(student: str, parent_name: str = Body(...), relation: str = Body(...),
+                      agree: bool = Body(...), grade: int | None = Body(None)):
+        if not agree:
+            raise HTTPException(400, "consent not given")
+        try:
+            buddy.give_consent(_sid(student), parent_name, relation, grade)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        return {"ok": True}
+
+    @app.post("/api/buddy/{student}/start")
+    def buddy_start(student: str):
+        return _buddy(buddy.start, _sid(student))
+
+    @app.post("/api/buddy/{student}/message")
+    def buddy_message(student: str, text: str = Body(..., embed=True)):
+        return _buddy(buddy.message, _sid(student), text)
+
+    @app.post("/api/buddy/{student}/stop")
+    def buddy_stop(student: str):
+        return _buddy(buddy.stop, _sid(student))
+
+    @app.get("/api/buddy/{student}/progress")
+    def buddy_progress(student: str):
+        return buddy.progress(_sid(student))
+
+    @app.get("/api/teacher/buddy")
+    def buddy_learners():
+        return buddy.learners()
+
+    @app.get("/api/teacher/buddy/{student}")
+    def buddy_learner(student: str):
+        return buddy.teacher_view(student)
 
     @app.get("/api/teacher/misconceptions/{pack_id}")
     def misconceptions(pack_id: str):

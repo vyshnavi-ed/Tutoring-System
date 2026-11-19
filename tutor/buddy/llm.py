@@ -1,0 +1,109 @@
+"""LLM clients for the Science Buddy. The engine only needs `respond(system, messages) -> dict`.
+
+AnthropicLLM forces a structured tool call so every turn returns the reply *and* the
+assessment data (evidence, level changes, inquiry state, wellbeing flag) in one go.
+DemoLLM gives canned replies so the screens can be tried without an API key.
+"""
+from __future__ import annotations
+
+import os
+
+from .skills import ALL, LEVELS, STAGES
+
+SKILL_ENUM = {"type": "string", "enum": ALL}
+
+RESPOND_TOOL = {
+    "name": "respond",
+    "description": "Send your next turn to the learner and record what you observed about their skills.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "reply": {"type": "string", "description": "What you say to the learner: one or two short sentences, at most ONE question."},
+            "ladder_step": {"type": "integer", "minimum": 0, "maximum": 5,
+                            "description": "Scaffolding-ladder step used for the FOCUS skill this turn (0 = none, 1 open ... 5 explain)."},
+            "evidence": {"type": "array", "description": "Skills the learner showed in their LAST message.",
+                         "items": {"type": "object", "properties": {
+                             "skill": SKILL_ENUM,
+                             "quote": {"type": "string", "description": "Short quote of the learner's words."},
+                             "signal": {"type": "string", "enum": LEVELS}},
+                             "required": ["skill", "quote", "signal"]}},
+            "level_changes": {"type": "array", "description": "Only when the evidence clearly justifies a new level.",
+                              "items": {"type": "object", "properties": {
+                                  "skill": SKILL_ENUM, "to": {"type": "string", "enum": LEVELS},
+                                  "reason": {"type": "string", "description": "One line, for the teacher."},
+                                  "plain_words": {"type": "string", "description": "For the learner, e.g. 'You planned a fair test on your own.'"}},
+                                  "required": ["skill", "to", "reason"]}},
+            "skill_named": {"type": "string", "description": "Skill you named for the learner this turn, or empty."},
+            "inquiry": {"type": "object", "description": "Current state of the inquiry (omit fields that haven't changed).",
+                        "properties": {
+                            "title": {"type": "string", "description": "Short title, e.g. 'Drooping tulsi plant'."},
+                            "question": {"type": "string", "description": "The investigable question, once there is one."},
+                            "stage": {"type": "string", "enum": STAGES},
+                            "task": {"type": "string", "description": "What the learner will go and do before next time, or empty."},
+                            "chapters": {"type": "array", "items": {"type": "string"}, "description": "Matching chapter ids, e.g. g6c8."},
+                            "status": {"type": "string", "enum": ["open", "done"]},
+                            "self_assessment": {"type": "object", "properties": {
+                                "easiest": {"type": "string"}, "hardest": {"type": "string"}}}}},
+            "wellbeing_concern": {"type": "string", "description": "If the child mentioned being hurt, bullied, unsafe or very upset: a short neutral summary. Otherwise empty."},
+            "end_session": {"type": "boolean", "description": "True once the session has closed with a reflection and a next question."},
+        },
+        "required": ["reply"],
+    },
+}
+
+
+class AnthropicLLM:
+    demo = False
+
+    def __init__(self, model: str | None = None):
+        import anthropic
+        self.client = anthropic.Anthropic()
+        self.model = model or os.environ.get("TUTOR_BUDDY_MODEL", "claude-sonnet-5-5")
+
+    def respond(self, system: str, messages: list[dict]) -> dict:
+        msg = self.client.messages.create(
+            model=self.model, max_tokens=1200, system=system, messages=messages,
+            tools=[RESPOND_TOOL], tool_choice={"type": "tool", "name": "respond"})
+        for block in msg.content:
+            if getattr(block, "type", "") == "tool_use":
+                return dict(block.input)
+        text = "".join(getattr(b, "text", "") for b in msg.content)
+        return {"reply": text}
+
+
+class DemoLLM:
+    """Canned curious-friend replies. NOT a tutor — just lets you click through the screens."""
+    demo = True
+    LINES = [
+        "Ooh, interesting! What exactly did you see?",
+        "Good detail. What else did you notice?",
+        "Hmm, could be! What did you see that made you think that?",
+        "How could you find out if that's right?",
+        "If you try that, what would be different and what would stay the same?",
+        "Great plan. Go and check, then come back and tell me what you find!",
+    ]
+
+    def respond(self, system: str, messages: list[dict]) -> dict:
+        n = sum(1 for m in messages if m["role"] == "user")
+        last = messages[-1]["content"] if messages else ""
+        if "[session start]" in last:
+            return {"reply": "Hi! Seen anything interesting today? (Demo mode: replies are canned until an AI key is added.)"}
+        if "learner wants to stop" in last:
+            return {"reply": "What did we find out today? And what are you wondering now?"}
+        out = {"reply": self.LINES[(n - 1) % len(self.LINES)]}
+        words = last.split()
+        if len(words) >= 3:
+            out["evidence"] = [{"skill": "observing", "quote": " ".join(words[:12]),
+                                "signal": "developing" if len(words) > 8 else "emerging"}]
+        if n == 2:
+            out["inquiry"] = {"title": "Something I noticed", "stage": "observe", "status": "open"}
+        return out
+
+
+def default_llm():
+    if os.environ.get("ANTHROPIC_API_KEY") and os.environ.get("TUTOR_BUDDY_DEMO") != "1":
+        try:
+            return AnthropicLLM()
+        except Exception:
+            pass
+    return DemoLLM()

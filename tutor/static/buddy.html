@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Science Buddy</title>
+<link rel="stylesheet" href="/static/app.css">
+<style>
+  main { max-width: 760px; }
+  .chat { display: flex; flex-direction: column; gap: 10px; min-height: 300px; margin-bottom: 14px; }
+  .bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; line-height: 1.45; font-size: 17px; white-space: pre-wrap; }
+  .bubble.tutor { background: #fff; border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .bubble.learner { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .bubble.thinking { color: var(--muted); font-style: italic; }
+  .composer { display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 0; background: var(--bg); padding: 10px 0; }
+  .composer textarea { resize: none; font-size: 17px; }
+  .mic { width: 52px; height: 48px; font-size: 22px; padding: 0; flex: none; }
+  .mic.on { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .send { height: 48px; flex: none; }
+  .banner { background: var(--warn-soft); color: var(--warn); padding: 8px 12px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; font-size: 14px; }
+  .toolbar select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); }
+  .disc li { margin: 6px 0; }
+  label.f { display: block; margin: 12px 0 4px; font-size: 14px; color: var(--muted); }
+  select.f { font: inherit; padding: 9px; border-radius: 8px; border: 1px solid var(--line); width: 100%; background: #fff; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>🔍 Science Buddy</h1>
+  <span class="muted small" id="who"></span>
+  <nav><a href="/">Subjects</a></nav>
+</header>
+<main id="app"></main>
+<script src="/static/common.js"></script>
+<script>
+const app = document.getElementById("app");
+let student = localStorage.getItem("tutor_student") || "";
+let speak = localStorage.getItem("buddy_speak") === "1";
+let lang = localStorage.getItem("buddy_lang") || "en-IN";
+const B = () => `/api/buddy/${encodeURIComponent(student)}`;
+
+async function boot() {
+  if (!student) return askName();
+  document.getElementById("who").textContent = `Hi, ${student}`;
+  const st = await api.get(B() + "/status");
+  if (!st.consent) return consentScreen();
+  chat(await api.post(B() + "/start"), st.demo);
+}
+
+function askName() {
+  app.innerHTML = `<div class="panel"><h2 style="margin-top:0">What should I call you?</h2>
+    <p class="muted small">Just your first name or a nickname — not your full name.</p>
+    <input type="text" id="nm" placeholder="e.g. Asha"><div class="actions"><button class="primary" id="ok">Start</button></div></div>`;
+  document.getElementById("ok").onclick = () => {
+    const v = document.getElementById("nm").value.trim(); if (!v) return;
+    student = v; localStorage.setItem("tutor_student", v); boot();
+  };
+}
+
+function consentScreen() {
+  app.innerHTML = `<div class="panel">
+    <h2 style="margin-top:0">Ask a parent or guardian 👋</h2>
+    <p>Before ${esc(student)} starts, a parent or guardian needs to agree. Please hand the device to them.</p>
+    <div class="small" style="background:var(--accent-soft);padding:12px 14px;border-radius:8px">
+      <b>What the Science Buddy is:</b> an AI that helps your child investigate things they notice at home, by asking questions — it doesn't give answers.<br><br>
+      <b>What is saved:</b> what your child types or says to the Buddy, and notes on which science skills they are building. Their teacher can see these, and conversations that mention your child being hurt or upset are flagged for a person to review.<br><br>
+      <b>What is never asked for:</b> full name, address, school name, phone number or photos of people.
+    </div>
+    <label class="f">Your name</label><input type="text" id="pn">
+    <label class="f">You are the child's…</label>
+    <select class="f" id="rel"><option value="">Choose…</option><option>Mother</option><option>Father</option><option>Guardian</option><option>Other family member</option></select>
+    <label class="f">Child's class</label>
+    <select class="f" id="gr"><option value="">Choose…</option><option value="6">Class 6</option><option value="7">Class 7</option><option value="8">Class 8</option></select>
+    <label class="row" style="margin-top:14px;gap:8px;align-items:flex-start"><input type="checkbox" id="ag" style="margin-top:4px">
+      <span>I am ${esc(student)}'s parent or guardian and I agree to this information being saved and shared with their teacher.</span></label>
+    <div class="actions"><button class="primary" id="ok">Agree and continue</button><span class="small" id="err" style="color:var(--bad)"></span></div>
+    <p class="small muted">Prototype: this checkbox is not a verified consent process.</p></div>`;
+  document.getElementById("ok").onclick = async () => {
+    const body = { parent_name: document.getElementById("pn").value, relation: document.getElementById("rel").value,
+      grade: +document.getElementById("gr").value || null, agree: document.getElementById("ag").checked };
+    if (!body.parent_name.trim() || !body.relation || !body.agree) { document.getElementById("err").textContent = "Please fill in your name, relationship and tick the box."; return; }
+    await api.post(B() + "/consent", body); boot();
+  };
+}
+
+function bubbles(turns) {
+  return turns.map(t => `<div class="bubble ${t.role}">${esc(t.text)}</div>`).join("");
+}
+
+function chat(view, demo) {
+  app.innerHTML = `
+    ${demo ? `<div class="banner">Demo mode: no AI key is set, so the Buddy's replies are canned. Add an Anthropic API key to try the real tutor.</div>` : ""}
+    <div class="toolbar">
+      <label class="row" style="gap:6px"><input type="checkbox" id="spk" ${speak ? "checked" : ""}> 🔊 Read replies aloud</label>
+      <select id="lang" title="Language for voice"><option value="en-IN">English (India)</option><option value="hi-IN">हिन्दी</option><option value="kn-IN">ಕನ್ನಡ</option></select>
+      <span style="margin-left:auto"></span>
+      <button class="link" id="disc">⭐ My discoveries</button>
+      <button id="stop">I'm done for today</button>
+    </div>
+    <div class="chat" id="chat">${bubbles(view.turns)}</div>
+    <div class="composer" id="composer">
+      <button class="mic" id="mic" title="Speak">🎤</button>
+      <textarea id="msg" rows="2" placeholder="Type or press 🎤 to talk…"></textarea>
+      <button class="primary send" id="send">Send</button>
+    </div>`;
+  document.getElementById("lang").value = lang;
+  document.getElementById("lang").onchange = e => { lang = e.target.value; localStorage.setItem("buddy_lang", lang); };
+  document.getElementById("spk").onchange = e => { speak = e.target.checked; localStorage.setItem("buddy_speak", speak ? "1" : "0"); };
+  document.getElementById("disc").onclick = discoveries;
+  document.getElementById("stop").onclick = async () => update(await api.post(B() + "/stop"));
+  const msg = document.getElementById("msg"), send = document.getElementById("send");
+  send.onclick = () => sendText(msg.value);
+  msg.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); } };
+  setupMic();
+  scrollEnd();
+  if (view.closed) closed();
+  if (!view.resumed) say(lastTutor(view));
+}
+
+function lastTutor(v) { const t = [...v.turns].reverse().find(t => t.role === "tutor"); return t ? t.text : ""; }
+function scrollEnd() { window.scrollTo(0, document.body.scrollHeight); }
+
+async function sendText(text) {
+  text = (text || "").trim(); if (!text) return;
+  const c = document.getElementById("chat");
+  c.insertAdjacentHTML("beforeend", `<div class="bubble learner">${esc(text)}</div><div class="bubble tutor thinking" id="th">…</div>`);
+  document.getElementById("msg").value = ""; scrollEnd();
+  document.getElementById("send").disabled = true;
+  try { update(await api.post(B() + "/message", { text })); }
+  finally { const s = document.getElementById("send"); if (s) s.disabled = false; }
+}
+
+function update(view) {
+  if (!view.turns) return;
+  document.getElementById("chat").innerHTML = bubbles(view.turns);
+  scrollEnd(); say(lastTutor(view));
+  if (view.closed) closed();
+}
+
+function closed() {
+  document.getElementById("composer").innerHTML = `<div class="panel" style="width:100%">See you next time! 👋 Go and investigate — then come back and tell me what you found.
+    <div class="actions"><button class="primary" id="again">Start a new chat</button><a href="/" style="margin-left:8px">Back to subjects</a></div></div>`;
+  document.getElementById("again").onclick = async () => chat(await api.post(B() + "/start"), false);
+}
+
+async function discoveries() {
+  const p = await api.get(B() + "/progress");
+  const box = document.createElement("div");
+  box.className = "panel"; box.style.marginBottom = "14px";
+  box.innerHTML = `<div class="row"><h3 style="margin:0">⭐ My discoveries</h3><span style="margin-left:auto"></span><button class="link" id="x">Close</button></div>
+    ${p.achievements.length ? `<p class="small muted">Things you can do now:</p><ul class="disc">${p.achievements.map(a => `<li>${esc(a.text)}</li>`).join("")}</ul>` : `<p class="muted small">Keep investigating — your new skills will show up here.</p>`}
+    ${p.inquiries.length ? `<p class="small muted">My investigations:</p><ul class="disc">${p.inquiries.map(i => `<li><b>${esc(i.title || "An investigation")}</b>${i.question ? ` — ${esc(i.question)}` : ""}${i.task && i.status !== "done" ? `<br><span class="small">To do: ${esc(i.task)}</span>` : ""}${i.status === "done" ? " ✓" : ""}</li>`).join("")}</ul>` : ""}`;
+  app.prepend(box);
+  box.querySelector("#x").onclick = () => box.remove();
+}
+
+// ---------------- voice: speech-to-text and text-to-speech (browser built-in; best in Chrome)
+function setupMic() {
+  const mic = document.getElementById("mic");
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { mic.title = "Voice input isn't supported in this browser (try Chrome)"; mic.disabled = true; return; }
+  let rec = null;
+  mic.onclick = () => {
+    if (rec) { rec.stop(); return; }
+    rec = new SR(); rec.lang = lang; rec.interimResults = true;
+    const box = document.getElementById("msg"); const before = box.value;
+    rec.onresult = e => { box.value = (before + " " + [...e.results].map(r => r[0].transcript).join("")).trim(); };
+    rec.onend = () => { mic.classList.remove("on"); rec = null; if (box.value.trim() && box.value !== before) sendText(box.value); };
+    rec.onerror = () => { mic.classList.remove("on"); rec = null; };
+    mic.classList.add("on"); rec.start();
+  };
+}
+
+function say(text) {
+  if (!speak || !text || !window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  const v = speechSynthesis.getVoices().find(v => v.lang === lang) || speechSynthesis.getVoices().find(v => v.lang.startsWith(lang.slice(0, 2)));
+  if (v) u.voice = v;
+  u.rate = 0.95;
+  speechSynthesis.speak(u);
+}
+
+boot();
+</script>
+</body>
+</html>
