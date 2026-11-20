@@ -53,14 +53,18 @@ def run(engine, student, pack_id, should_pass, max_steps=400, stop=None):
     for _ in range(max_steps):
         if stop and stop(trace):
             break
-        if a["type"] in ("activity", "message"):
-            trace.append((a["type"], a.get("title") or a.get("text")))
+        if a["type"] in ("activity", "message", "explain", "connect"):
+            trace.append((a["type"], a.get("title") or a.get("text") or a.get("key_learning")))
             a = engine.acknowledge(student, pack_id)
+        elif a["type"] in ("prompt", "explore"):
+            trace.append((a["type"], a.get("phase"), a.get("prompt")))
+            r = engine.answer(student, pack_id, "I think it is because the pieces are the same size")
+            a = r["action"]
         elif a["type"] == "item":
             item = pack.item(a["set_id"], a["item_id"])
             ok = should_pass(a["set_id"], item, trace)
             r = engine.answer(student, pack_id, correct_answer(item) if ok else "definitely wrong 0")
-            trace.append(("item", a["set_id"], a["item_id"], r["result"]["passed"]))
+            trace.append(("item", a["set_id"], a["item_id"], r["result"]["passed"], r["result"].get("retry", False)))
             a = r["action"]
         else:
             trace.append(("done", a.get("text")))

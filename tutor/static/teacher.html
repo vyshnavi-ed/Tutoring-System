@@ -70,7 +70,12 @@ async function alerts() {
 async function students() {
   const rows = await api.get("/api/teacher/sessions");
   if (!rows.length) { view.innerHTML = `<div class="panel empty">No student sessions yet.</div>`; return; }
-  view.innerHTML = `<div class="panel"><table>
+  const misc = (await Promise.all(packs.filter(p => p.pedagogy === "inquiry").map(async p =>
+    (await api.get(`/api/teacher/misconceptions/${p.id}`)).map(m => ({ ...m, pack: p.title }))))).flat();
+  view.innerHTML = (misc.length ? `<div class="panel" style="margin-bottom:16px"><h3 style="margin-top:0">Common misconceptions</h3>
+    <table><tr><th>Misconception</th><th>Skill</th><th>Students</th></tr>${misc.map(m => `
+      <tr><td><b>${esc(m.label)}</b></td><td class="muted">${esc(m.pack)} · ${esc(m.set_title)}</td>
+      <td>${m.students.length} — ${m.students.map(esc).join(", ")}</td></tr>`).join("")}</table></div>` : "") + `<div class="panel"><table>
     <tr><th>Student</th><th>Subject</th><th>Strategy</th><th>Attempts</th><th>Correct</th><th>Alerts</th><th>Last active</th></tr>
     ${rows.map(r => {
       const p = packs.find(x => x.id === r.pack) || {};
@@ -90,6 +95,11 @@ async function detail(student, packId) {
     api.get(`/api/packs/${packId}`),
   ]);
   const setTitle = id => (pack.item_sets[id] || {}).title || id;
+  window.misLabel = (sid, mid) => {
+    for (const it of ((pack.item_sets[sid] || {}).items || []))
+      for (const m of (it.misconceptions || [])) if (m.id === mid) return m.label || mid;
+    return mid;
+  };
   const setLevel = id => (pack.item_sets[id] || {}).level || "";
   const s = d.summary || {};
   let snap = "";
@@ -130,9 +140,16 @@ async function detail(student, packId) {
     lapse: e => ({ cls: "fail", html: `${esc(setTitle(e.set_id))} lapsed (lapses: ${e.lapses})` }),
     clock_advanced: e => ({ cls: "", html: `⏩ Clock advanced ${e.days} day(s)` }),
     teacher_alert: e => ({ cls: "alert", html: `🔔 Teacher alerted: ${esc(e.message)}` }),
+    misconception: e => ({ cls: "fail", html: `🤔 Misconception <b>${esc(misLabel(e.set_id, e.misconception))}</b> — answered “${esc(e.response)}”` }),
+    followup: e => ({ cls: "teach", html: `💬 Follow-up asked: <i>${esc(e.question)}</i>` }),
     session_start: e => ({ cls: "", html: `Session started (${esc(STRATEGY_LABEL[e.strategy] || e.strategy)})` }),
   };
   d.events.forEach(e => { const f = EV[e.kind]; if (f) items.push({ ts: e.ts, ...f(e.payload) }); });
+  const PH = { elicit: "Prior knowledge", predict: "Prediction", explore: "Investigation", probe: "Reasoning" };
+  (d.responses || []).forEach(r => items.push({ ts: r.ts, cls: "teach",
+    html: `✎ <b>${PH[r.phase] || r.phase}</b>${r.is_followup ? " (follow-up)" : ""} <span class="muted">· ${esc(setTitle(r.set_id))}</span>
+      <div class="small muted">${mdi(r.prompt)}</div><pre class="resp">${esc(r.response)}</pre>` }));
+  const thinking = (d.responses || []).filter(r => ["predict", "probe", "explore"].includes(r.phase));
   items.sort((a, b) => a.ts - b.ts);
 
   view.innerHTML = `
@@ -141,6 +158,10 @@ async function detail(student, packId) {
       <h2 style="margin-top:0">${esc(student)} · ${esc(pack.title)}</h2>
       <p class="muted small" style="margin-top:-8px">${STRATEGY_LABEL[pack.strategy]}</p>${snap}
     </div>
+    ${thinking.length ? `<div class="panel" style="margin-bottom:16px"><h3 style="margin-top:0">Student thinking</h3>
+      <table class="thinking"><tr><th>Skill</th><th>Step</th><th>Question</th><th>Student wrote</th></tr>
+      ${thinking.map(r => `<tr><td>${esc(setTitle(r.set_id))}</td><td><span class="badge grey">${PH[r.phase]}</span></td>
+        <td class="small">${mdi(r.prompt)}</td><td>${esc(r.response)}</td></tr>`).join("")}</table></div>` : ""}
     <div class="panel"><h3 style="margin-top:0">Learning path</h3>
       <ul class="timeline">${items.map(i => `<li class="${i.cls}">${i.html}</li>`).join("")}</ul></div>`;
   document.getElementById("back").onclick = students;
@@ -159,6 +180,7 @@ async function packsTab() {
     ${packs.map(p => `
       <div class="panel" style="margin-bottom:12px">
         <div class="row"><b>${esc(p.title)}</b><span class="badge grey">${STRATEGY_LABEL[p.strategy] || p.strategy}</span>
+          <span class="badge grey">${p.pedagogy === "inquiry" ? "Inquiry" : "Direct"}</span>
           <span class="badge ${p.status === "approved" ? "ok" : "warn"}">${p.status}</span>
           <span class="muted small">${p.sets} sets · ${p.items} items</span><span style="margin-left:auto"></span>
           <button class="link" data-view="${p.id}">Review content</button>
@@ -185,12 +207,21 @@ async function reviewPack(id) {
     <div class="set-block">
       <div class="row"><b>${esc(sid)}</b> ${esc(s.title || "")} ${s.level ? `<span class="badge grey">${esc(s.level)}</span>` : ""}</div>
       ${(s.links || []).length ? `<div class="small muted">${pack.strategy === "prereq_graph" ? "Prerequisites" : "If failed → "}: ${s.links.map(esc).join(", ")}</div>` : ""}
+      ${s.episode ? `<details><summary class="small">Inquiry episode</summary><div class="small" style="margin:6px 0 6px 12px">
+        ${(s.episode.elicit || []).map(e => `<div><b>Think back:</b> ${mdi(e.prompt)}</div>`).join("")}
+        ${s.episode.predict ? `<div><b>Predict:</b> ${mdi(s.episode.predict.prompt)}</div>` : ""}
+        ${s.episode.explore ? `<div><b>Investigate (${esc(s.episode.explore.tool)}):</b> ${mdi(s.episode.explore.prompt || "")}</div>` : ""}
+        ${(s.episode.probe || []).map(p => `<div><b>Probe (${esc(p.kind)}):</b> ${mdi(p.prompt)}</div>`).join("")}
+        ${(s.episode.connect || []).map(c => `<div><b>Where else:</b> ${mdi(c)}</div>`).join("")}
+        ${s.episode.key_learning ? `<div><b>Key learning:</b> ${esc(s.episode.key_learning)}</div>` : ""}</div></details>` : ""}
       <details><summary class="small">${s.items.length} items</summary>
         ${s.items.map(it => `<div class="small" style="margin:8px 0 8px 12px"><span class="badge grey">${esc(it.type)}</span>
           <div class="md">${md(it.prompt)}</div>
           ${it.options ? `<div class="muted">Options: ${it.options.map(esc).join(" | ")}</div>` : ""}
           ${it.answer !== undefined ? `<div>Answer: <b>${esc(it.answer)}</b></div>` : ""}
           ${it.rubric ? `<div>Rubric: ${esc(it.rubric)}</div>` : ""}
+          ${(it.hints || []).map((h, i) => `<div class="muted">Hint ${i + 1}: ${mdi(h)}</div>`).join("")}
+          ${(it.misconceptions || []).map(m => `<div style="color:#5b37a0">If “${esc((m.values || m.responses || [m.pattern]).join(" / "))}” (${esc(m.label || m.id)}): ${mdi(m.probe)}</div>`).join("")}
           ${it.tests ? `<pre class="resp">${it.tests.map(esc).join("\n")}</pre>` : ""}</div>`).join("")}
       </details>
     </div>`).join("");

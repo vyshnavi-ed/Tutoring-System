@@ -68,19 +68,26 @@ def test_api_flow(tmp_path):
     packs = c.get("/api/packs").json()
     assert {p["id"] for p in packs} == {"ds_linked_lists", "english_vocab", "math_fractions"}
     a = c.get("/api/session/Asha/math_fractions").json()
-    assert a["type"] == "activity"
+    assert a["type"] == "message"                       # "Next skill: ..."
     a = c.post("/api/session/Asha/math_fractions/continue").json()
-    assert a["type"] == "item" and "answer" not in a
+    while a["type"] != "item":                          # inquiry episode before any scored question
+        if a["type"] in ("prompt", "explore"):
+            a = c.post("/api/session/Asha/math_fractions/answer", json={"response": "my idea"}).json()["action"]
+        else:
+            a = c.post("/api/session/Asha/math_fractions/continue").json()
+    assert "answer" not in a
     eng = app.state.engine
     item = eng.packs["math_fractions"].item(a["set_id"], a["item_id"])
     r = c.post("/api/session/Asha/math_fractions/answer", json={"response": correct_answer(item)}).json()
     assert r["result"]["passed"] is True
-    r = c.post("/api/session/Asha/math_fractions/answer", json={"response": "999/1"}).json()
+    for _ in range(3):  # two hint rungs, then the worked example and the answer
+        r = c.post("/api/session/Asha/math_fractions/answer", json={"response": "999/1"}).json()
     assert r["result"]["passed"] is False and "answer" in r["result"]
     sessions = c.get("/api/teacher/sessions").json()
-    assert sessions[0]["student"] == "Asha" and sessions[0]["attempts"] == 2
+    assert sessions[0]["student"] == "Asha" and sessions[0]["attempts"] == 4
     d = c.get("/api/teacher/sessions/Asha/math_fractions").json()
-    assert d["summary"]["strategy"] == "prereq_graph" and len(d["attempts"]) == 2
+    assert d["summary"]["strategy"] == "prereq_graph" and len(d["attempts"]) == 4
+    assert len(d["responses"]) >= 3
     assert c.get("/api/packs/nope").status_code == 404
     assert c.get("/").status_code == 200 and c.get("/teacher").status_code == 200
 

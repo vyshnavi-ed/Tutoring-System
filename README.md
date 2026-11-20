@@ -1,14 +1,43 @@
 # Multi-strategy tutoring system (prototype)
 
-A tutoring engine that runs **different tutoring algorithms for different subjects**, built on the
-tutoring-rules framework from Ramesh (2014), *A Framework for Tutoring Rules* (IIIT Bangalore),
+A tutoring engine that runs **different tutoring algorithms and different pedagogies for different topics**,
+built on the tutoring-rules framework from Ramesh (2014), *A Framework for Tutoring Rules* (IIIT Bangalore),
 and extended beyond it.
+
+Each topic pack chooses two things:
+- a **strategy**: *what comes next* (level descent, prerequisite graph, spaced repetition), and
+- a **pedagogy**: *how each skill is taught*. `inquiry` (constructivist, 5E / Agastya session-plan structure)
+  or `direct` (lesson, then questions).
+
+### Inquiry pedagogy
+
+Before any scored question, each skill runs an **episode**:
+
+| Phase | What the student does |
+|---|---|
+| Think back | Recalls their own experience (home, market, cooking, festivals…) |
+| Predict | Makes one prediction. It is never marked right or wrong, and is quoted back later |
+| Investigate | Explores *before being told*: on-screen fraction strips, sentences to infer a word's meaning from, a problem to try, or real materials at home |
+| Think about it | Probing questions: what did you notice → why → where else → say it in your own words. An AI tutor may add one follow-up question (never the answer) |
+| Make sense of it | The explanation comes *after* the student's own, and compares it with their prediction |
+| Where else? | Everyday connections and the key learning in one sentence |
+
+Wrong answers on scored questions climb a **hint ladder** before the student is "remediated". First comes a
+**misconception probe** if the answer matches a known error (e.g. 2/9 + 4/9 = 6/18 → *"is 6/18 bigger than 4/9?"*),
+then a Socratic hint, then a nudge, with a retry of the *same* question each time. Only after that is the worked
+example shown and the strategy steps in. Quick diagnostic checks (prerequisite probes) get no hints, so gaps aren't hidden.
+
+The teacher dashboard shows each student's **predictions, investigation notes and explanations**, and a
+**class-wide list of misconceptions** (which error, which skill, which students).
+
+Explore tools live in `tutor/static/tools.js`. Add a topic-specific tool there (e.g. a circuit builder, a
+balance scale) and list its name in `tutor/validate.py`'s `EXPLORE_TOOLS`.
 
 | Subject pack | Strategy | What it does when a student gets something wrong |
 |---|---|---|
-| **Fractions** (Maths) | `prereq_graph` | Checks each prerequisite skill with one quick question (equivalent fractions, LCM, HCF…), teaches the first one the student lacks until it is mastered, then returns to the original skill. Mastery is a probability (Bayesian Knowledge Tracing). |
-| **English vocabulary** | `spaced_repetition` | The word drops back to box 0, its card is shown again, and it returns after 3 other questions. Words the student knows come back days later, and the questions get harder as a word climbs boxes: recognise → fill the gap → type it → use it in a sentence. |
-| **Linked lists, UOS1.2** (from the thesis) | `level_descent` | The thesis's Fig. 4.4 rules. A wrong Apply answer leads to the Understand lesson and the pre-selected Understand sets, then the Remember sets, then back up to a *different* Apply item. |
+| **Fractions** (Maths) · inquiry | `prereq_graph` | Checks each prerequisite skill with one quick question (equivalent fractions, LCM, HCF…), teaches the first one the student lacks until it is mastered, then returns to the original skill. Mastery is a probability (Bayesian Knowledge Tracing). |
+| **English vocabulary** · inquiry (guess from context first) | `spaced_repetition` | The word drops back to box 0, its card is shown again, and it returns after 3 other questions. Words the student knows come back days later, and the questions get harder as a word climbs boxes: recognise → fill the gap → type it → use it in a sentence. |
+| **Linked lists, UOS1.2** (from the thesis) · direct | `level_descent` | The thesis's Fig. 4.4 rules. A wrong Apply answer leads to the Understand lesson and the pre-selected Understand sets, then the Remember sets, then back up to a *different* Apply item. |
 
 In every subject, after **3 wrong answers in a row on the same set** the teacher is alerted, and the
 student is told help is coming. Free-text answers that can't be graded confidently are sent to the
@@ -24,7 +53,8 @@ uvicorn tutor.api:app --reload      # or: python -m tutor.api
 - Teacher dashboard: http://localhost:8000/teacher (alerts, each student's path, content review and approval)
 
 Optional: `export ANTHROPIC_API_KEY=...` turns on AI grading for free-text answers (otherwise a
-keyword check is used and the teacher is asked to confirm) and AI pack authoring.
+keyword check is used and the teacher is asked to confirm), AI follow-up questions in inquiry episodes
+(otherwise authored follow-ups are used for very short answers), and AI pack authoring.
 
 Tests: `pytest -q`. They run simulated students through every strategy, including the exact sequence
 from the thesis's Figure 4.4.
@@ -40,6 +70,7 @@ tutor/
     level_descent.py     the thesis rules
     prereq_graph.py      diagnosis through prerequisites + BKT mastery
     spaced_repetition.py Leitner boxes
+  pedagogy.py            direct vs inquiry: episodes, AI follow-ups, hint ladder, misconception probes
   graders.py             mcq, numeric, fraction, text (Unicode-safe), code_python, free_text (AI)
   mastery.py             Bayesian Knowledge Tracing
   validate.py            checks packs: links, cycles, answer keys, runs code solutions against their tests
@@ -57,7 +88,7 @@ unused for `spaced_repetition`.
 ## Adding a subject
 
 ```bash
-python -m tutor.authoring generate --strategy prereq_graph --title "Decimals" \
+python -m tutor.authoring generate --strategy prereq_graph --pedagogy inquiry --title "Decimals" \
   --subject "Mathematics (Class 6)" --brief "place value, comparing, adding and subtracting decimals" \
   --out packs/math_decimals.json
 python -m tutor.authoring validate packs/math_decimals.json
@@ -80,5 +111,5 @@ optionally `progress` and `summary` for the dashboards), and register it in
   Use a container or jail (Judge0, gVisor) before letting untrusted users submit code.
 - **No authentication.** Students identify themselves by typing a name, and the teacher page is open.
 - **"Skip ahead 1 day"** in the vocabulary subject is a demo helper for testing spaced repetition.
-- **AI authoring and AI grading are untested** against the live API: they need `ANTHROPIC_API_KEY`.
+- **AI authoring, AI grading and AI follow-ups are untested** against the live API: they need `ANTHROPIC_API_KEY`.
   The offline paths are covered by the tests.

@@ -4,7 +4,7 @@
   "subject": "English (Class 6–7)",
   "strategy": "spaced_repetition",
   "status": "approved",
-  "description": "Each word climbs boxes: recognise the meaning → pick it in a sentence → type it → use it yourself. Missed words come back soon; known words come back days later.",
+  "description": "Inquiry-based: guess each word's meaning from sentences before seeing it, then use it about your own life. Spaced repetition brings words back until you know them.",
   "config": {
     "box_intervals_days": [
       0,
@@ -17,7 +17,9 @@
     "new_per_session": 5,
     "relearn_gap": 3,
     "alert_after_failures": 3,
-    "reveal_answer_on_fail": true
+    "reveal_answer_on_fail": true,
+    "max_hints": 1,
+    "ai_followups": true
   },
   "activities": {
     "CARD_ABUNDANT": {
@@ -86,7 +88,10 @@
             "existing in large amounts; more than enough",
             "lasting only a short time; short"
           ],
-          "answer": "existing in large amounts; more than enough"
+          "answer": "existing in large amounts; more than enough",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_ABUNDANT.cloze",
@@ -98,7 +103,10 @@
             "brief",
             "humble"
           ],
-          "answer": "abundant"
+          "answer": "abundant",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_ABUNDANT.produce",
@@ -107,6 +115,9 @@
           "answer": "abundant",
           "accepted": [
             "abundant"
+          ],
+          "hints": [
+            "It starts with “a” and has 8 letters."
           ]
         },
         {
@@ -117,9 +128,41 @@
           "keywords": [
             "abunda"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "abundant",
+          "sentences": [
+            "Mangoes are abundant in summer.",
+            "After the rains, water was abundant in the village well.",
+            "There was so much rice in the granary that the farmers called it an abundant harvest."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **abundant**.",
+          "record": "What do you think **abundant** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **abundant**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **abundant** means?",
+        "explain": {
+          "activity": "CARD_ABUNDANT",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **abundant** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "abundant: existing in large amounts; more than enough"
+      }
     },
     "W_FRAGILE": {
       "title": "fragile",
@@ -137,7 +180,10 @@
             "extremely large",
             "dark or sad; without hope"
           ],
-          "answer": "easily broken or damaged"
+          "answer": "easily broken or damaged",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_FRAGILE.cloze",
@@ -149,7 +195,10 @@
             "reluctant",
             "humble"
           ],
-          "answer": "fragile"
+          "answer": "fragile",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_FRAGILE.produce",
@@ -158,6 +207,9 @@
           "answer": "fragile",
           "accepted": [
             "fragile"
+          ],
+          "hints": [
+            "It starts with “f” and has 7 letters."
           ]
         },
         {
@@ -168,9 +220,41 @@
           "keywords": [
             "fragi"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "fragile",
+          "sentences": [
+            "Handle the glass bangles carefully — they are fragile.",
+            "The old clay pot was so fragile that it cracked when touched.",
+            "The baby bird's wing was so fragile that we held it with both hands."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **fragile**.",
+          "record": "What do you think **fragile** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **fragile**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **fragile** means?",
+        "explain": {
+          "activity": "CARD_FRAGILE",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **fragile** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "fragile: easily broken or damaged"
+      }
     },
     "W_RELUCTANT": {
       "title": "reluctant",
@@ -188,7 +272,10 @@
             "unwilling and slow to do something",
             "not proud; not thinking you are better than others"
           ],
-          "answer": "unwilling and slow to do something"
+          "answer": "unwilling and slow to do something",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_RELUCTANT.cloze",
@@ -200,7 +287,10 @@
             "vivid",
             "reluctant"
           ],
-          "answer": "reluctant"
+          "answer": "reluctant",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_RELUCTANT.produce",
@@ -209,6 +299,9 @@
           "answer": "reluctant",
           "accepted": [
             "reluctant"
+          ],
+          "hints": [
+            "It starts with “r” and has 9 letters."
           ]
         },
         {
@@ -219,9 +312,41 @@
           "keywords": [
             "relucta"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "reluctant",
+          "sentences": [
+            "Meena was reluctant to jump into the cold river.",
+            "He was reluctant to lend his new bicycle to anyone.",
+            "Ravi was reluctant to tell his mother about the broken cup, so he waited until evening."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **reluctant**.",
+          "record": "What do you think **reluctant** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **reluctant**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **reluctant** means?",
+        "explain": {
+          "activity": "CARD_RELUCTANT",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **reluctant** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "reluctant: unwilling and slow to do something"
+      }
     },
     "W_CURIOUS": {
       "title": "curious",
@@ -239,7 +364,10 @@
             "not proud; not thinking you are better than others",
             "very old; from a long time ago"
           ],
-          "answer": "wanting to know or learn about something"
+          "answer": "wanting to know or learn about something",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_CURIOUS.cloze",
@@ -251,7 +379,10 @@
             "vivid",
             "brief"
           ],
-          "answer": "curious"
+          "answer": "curious",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_CURIOUS.produce",
@@ -260,6 +391,9 @@
           "answer": "curious",
           "accepted": [
             "curious"
+          ],
+          "hints": [
+            "It starts with “c” and has 7 letters."
           ]
         },
         {
@@ -270,9 +404,41 @@
           "keywords": [
             "curio"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "curious",
+          "sentences": [
+            "The curious child asked how rainbows form.",
+            "The curious cat kept sniffing the new box.",
+            "Curious about the strange noise, the boys crept closer to the old well."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **curious**.",
+          "record": "What do you think **curious** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **curious**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **curious** means?",
+        "explain": {
+          "activity": "CARD_CURIOUS",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **curious** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "curious: wanting to know or learn about something"
+      }
     },
     "W_GENEROUS": {
       "title": "generous",
@@ -290,7 +456,10 @@
             "wanting to know or learn about something",
             "happy to give more money, time or help than expected"
           ],
-          "answer": "happy to give more money, time or help than expected"
+          "answer": "happy to give more money, time or help than expected",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_GENEROUS.cloze",
@@ -302,7 +471,10 @@
             "humble",
             "brief"
           ],
-          "answer": "generous"
+          "answer": "generous",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_GENEROUS.produce",
@@ -311,6 +483,9 @@
           "answer": "generous",
           "accepted": [
             "generous"
+          ],
+          "hints": [
+            "It starts with “g” and has 8 letters."
           ]
         },
         {
@@ -321,9 +496,41 @@
           "keywords": [
             "genero"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "generous",
+          "sentences": [
+            "Our generous neighbour shared sweets with the whole street.",
+            "It was generous of her to give her lunch to the new student.",
+            "The shopkeeper was generous and added two extra bananas without charging us."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **generous**.",
+          "record": "What do you think **generous** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **generous**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **generous** means?",
+        "explain": {
+          "activity": "CARD_GENEROUS",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **generous** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "generous: happy to give more money, time or help than expected"
+      }
     },
     "W_ANCIENT": {
       "title": "ancient",
@@ -341,7 +548,10 @@
             "easily broken or damaged",
             "very old; from a long time ago"
           ],
-          "answer": "very old; from a long time ago"
+          "answer": "very old; from a long time ago",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_ANCIENT.cloze",
@@ -353,7 +563,10 @@
             "fragile",
             "generous"
           ],
-          "answer": "ancient"
+          "answer": "ancient",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_ANCIENT.produce",
@@ -362,6 +575,9 @@
           "answer": "ancient",
           "accepted": [
             "ancient"
+          ],
+          "hints": [
+            "It starts with “a” and has 7 letters."
           ]
         },
         {
@@ -372,9 +588,41 @@
           "keywords": [
             "ancie"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "ancient",
+          "sentences": [
+            "Hampi has many ancient temples.",
+            "The museum displayed ancient coins from the Mauryan period.",
+            "Our grandfather showed us an ancient map, its paper yellow and cracked with age."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **ancient**.",
+          "record": "What do you think **ancient** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **ancient**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **ancient** means?",
+        "explain": {
+          "activity": "CARD_ANCIENT",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **ancient** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "ancient: very old; from a long time ago"
+      }
     },
     "W_BRIEF": {
       "title": "brief",
@@ -392,7 +640,10 @@
             "very old; from a long time ago",
             "lasting only a short time; short"
           ],
-          "answer": "lasting only a short time; short"
+          "answer": "lasting only a short time; short",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_BRIEF.cloze",
@@ -404,7 +655,10 @@
             "fragile",
             "vivid"
           ],
-          "answer": "brief"
+          "answer": "brief",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_BRIEF.produce",
@@ -413,6 +667,9 @@
           "answer": "brief",
           "accepted": [
             "brief"
+          ],
+          "hints": [
+            "It starts with “b” and has 5 letters."
           ]
         },
         {
@@ -423,9 +680,41 @@
           "keywords": [
             "brie"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "brief",
+          "sentences": [
+            "The principal gave a brief speech.",
+            "We had a brief stop for tea before continuing the journey.",
+            "The rain was brief — it stopped after just five minutes."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **brief**.",
+          "record": "What do you think **brief** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **brief**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **brief** means?",
+        "explain": {
+          "activity": "CARD_BRIEF",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **brief** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "brief: lasting only a short time; short"
+      }
     },
     "W_ENORMOUS": {
       "title": "enormous",
@@ -443,7 +732,10 @@
             "extremely large",
             "not proud; not thinking you are better than others"
           ],
-          "answer": "extremely large"
+          "answer": "extremely large",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_ENORMOUS.cloze",
@@ -455,7 +747,10 @@
             "enormous",
             "abundant"
           ],
-          "answer": "enormous"
+          "answer": "enormous",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_ENORMOUS.produce",
@@ -464,6 +759,9 @@
           "answer": "enormous",
           "accepted": [
             "enormous"
+          ],
+          "hints": [
+            "It starts with “e” and has 8 letters."
           ]
         },
         {
@@ -474,9 +772,41 @@
           "keywords": [
             "enormo"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "enormous",
+          "sentences": [
+            "An elephant is an enormous animal.",
+            "The banyan tree had an enormous trunk that five children could not circle.",
+            "The enormous wave was taller than the fishing boat."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **enormous**.",
+          "record": "What do you think **enormous** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **enormous**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **enormous** means?",
+        "explain": {
+          "activity": "CARD_ENORMOUS",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **enormous** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "enormous: extremely large"
+      }
     },
     "W_RAPID": {
       "title": "rapid",
@@ -494,7 +824,10 @@
             "lasting only a short time; short",
             "happy to give more money, time or help than expected"
           ],
-          "answer": "happening very quickly; fast"
+          "answer": "happening very quickly; fast",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_RAPID.cloze",
@@ -506,7 +839,10 @@
             "reluctant",
             "rapid"
           ],
-          "answer": "rapid"
+          "answer": "rapid",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_RAPID.produce",
@@ -515,6 +851,9 @@
           "answer": "rapid",
           "accepted": [
             "rapid"
+          ],
+          "hints": [
+            "It starts with “r” and has 5 letters."
           ]
         },
         {
@@ -525,9 +864,41 @@
           "keywords": [
             "rapi"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "rapid",
+          "sentences": [
+            "The town saw rapid growth after the new railway line.",
+            "The river's rapid current swept the leaves away.",
+            "With rapid steps she reached the bus stop just in time."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **rapid**.",
+          "record": "What do you think **rapid** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **rapid**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **rapid** means?",
+        "explain": {
+          "activity": "CARD_RAPID",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **rapid** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "rapid: happening very quickly; fast"
+      }
     },
     "W_VIVID": {
       "title": "vivid",
@@ -545,7 +916,10 @@
             "unwilling and slow to do something",
             "very bright, clear or detailed"
           ],
-          "answer": "very bright, clear or detailed"
+          "answer": "very bright, clear or detailed",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_VIVID.cloze",
@@ -557,7 +931,10 @@
             "enormous",
             "vivid"
           ],
-          "answer": "vivid"
+          "answer": "vivid",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_VIVID.produce",
@@ -566,6 +943,9 @@
           "answer": "vivid",
           "accepted": [
             "vivid"
+          ],
+          "hints": [
+            "It starts with “v” and has 5 letters."
           ]
         },
         {
@@ -576,9 +956,41 @@
           "keywords": [
             "vivi"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "vivid",
+          "sentences": [
+            "She described her dream in vivid detail.",
+            "The rangoli was made with vivid colours.",
+            "The peacock spread its vivid blue and green feathers."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **vivid**.",
+          "record": "What do you think **vivid** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **vivid**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **vivid** means?",
+        "explain": {
+          "activity": "CARD_VIVID",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **vivid** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "vivid: very bright, clear or detailed"
+      }
     },
     "W_HUMBLE": {
       "title": "humble",
@@ -596,7 +1008,10 @@
             "not proud; not thinking you are better than others",
             "happening very quickly; fast"
           ],
-          "answer": "not proud; not thinking you are better than others"
+          "answer": "not proud; not thinking you are better than others",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_HUMBLE.cloze",
@@ -608,7 +1023,10 @@
             "ancient",
             "brief"
           ],
-          "answer": "humble"
+          "answer": "humble",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_HUMBLE.produce",
@@ -617,6 +1035,9 @@
           "answer": "humble",
           "accepted": [
             "humble"
+          ],
+          "hints": [
+            "It starts with “h” and has 6 letters."
           ]
         },
         {
@@ -627,9 +1048,41 @@
           "keywords": [
             "humb"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "humble",
+          "sentences": [
+            "Despite winning, the champion stayed humble.",
+            "The famous scientist was humble and thanked her whole team.",
+            "Although he was the village's best singer, he was humble and never boasted."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **humble**.",
+          "record": "What do you think **humble** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **humble**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **humble** means?",
+        "explain": {
+          "activity": "CARD_HUMBLE",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **humble** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "humble: not proud; not thinking you are better than others"
+      }
     },
     "W_GLOOMY": {
       "title": "gloomy",
@@ -647,7 +1100,10 @@
             "wanting to know or learn about something",
             "unwilling and slow to do something"
           ],
-          "answer": "dark or sad; without hope"
+          "answer": "dark or sad; without hope",
+          "hints": [
+            "Think back to the three sentences. Which meaning fits all of them?"
+          ]
         },
         {
           "id": "W_GLOOMY.cloze",
@@ -659,7 +1115,10 @@
             "gloomy",
             "humble"
           ],
-          "answer": "gloomy"
+          "answer": "gloomy",
+          "hints": [
+            "Read the sentence aloud with each word in the gap. Which one makes sense?"
+          ]
         },
         {
           "id": "W_GLOOMY.produce",
@@ -668,6 +1127,9 @@
           "answer": "gloomy",
           "accepted": [
             "gloomy"
+          ],
+          "hints": [
+            "It starts with “g” and has 6 letters."
           ]
         },
         {
@@ -678,9 +1140,41 @@
           "keywords": [
             "gloo"
           ],
-          "min_words": 5
+          "min_words": 5,
+          "hints": [
+            "Try a sentence about your home, school or village, e.g. “The … was …”."
+          ]
         }
-      ]
+      ],
+      "episode": {
+        "explore": {
+          "tool": "context_sentences",
+          "word": "gloomy",
+          "sentences": [
+            "The sky was gloomy before the storm.",
+            "He felt gloomy after losing the match.",
+            "The house felt gloomy with all the lights off and the curtains closed."
+          ],
+          "prompt": "Read these three sentences. Each one uses the word **gloomy**.",
+          "record": "What do you think **gloomy** means? Make your best guess."
+        },
+        "probe": [
+          {
+            "kind": "why",
+            "prompt": "Which words in the sentences gave you a clue about **gloomy**?",
+            "followup": "Look at the words just before and after it. What do they tell you?"
+          }
+        ],
+        "reprobe": "Read the sentences again. What clue tells you what **gloomy** means?",
+        "explain": {
+          "activity": "CARD_GLOOMY",
+          "revisit": "Your guess was {prediction}. How close were you? Here's the meaning:"
+        },
+        "connect": [
+          "Think of something in your own life that is **gloomy** — you'll get to use the word in a sentence soon."
+        ],
+        "key_learning": "gloomy: dark or sad; without hope"
+      }
     }
   },
   "units": [
@@ -702,5 +1196,6 @@
         "W_GLOOMY"
       ]
     }
-  ]
+  ],
+  "pedagogy": "inquiry"
 }

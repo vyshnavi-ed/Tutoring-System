@@ -36,9 +36,9 @@ class PrereqGraph(Strategy):
     def _goals(self):
         return [sid for u in self.pack.units for sid in u["sets"]]
 
-    def _learn_frame(self, state, sid, reason):
+    def _learn_frame(self, state, sid, reason, mode="intro"):
         state["stack"].append({"set": sid, "mode": "learn", "diagnosed": False, "probe": [], "probe_idx": 0})
-        self.queue_activity(state, self.pack.sets[sid].get("activity"), reason)
+        self.teach(state, sid, mode, reason)
 
     def next_step(self, state, ctx):
         goals = self._goals()
@@ -68,7 +68,7 @@ class PrereqGraph(Strategy):
                 self._resume_parent(state, ctx)
             else:
                 ctx.log("gap_found", set_id=set_id)
-                self._learn_frame(state, set_id, f"Found a gap: “{self.set_title(set_id)}”. Let's fix this first.")
+                self._learn_frame(state, set_id, f"Found a gap: “{self.set_title(set_id)}”. Let's investigate this first.", "gap")
             return
 
         # learn mode
@@ -93,8 +93,7 @@ class PrereqGraph(Strategy):
             stack.append({"set": unmastered[0], "mode": "probe"})
         else:
             ctx.log("reteach", set_id=set_id)
-            self.queue_activity(state, self.pack.sets[set_id].get("activity"),
-                                "Here's the lesson again — look closely at the worked example.")
+            self.teach(state, set_id, "reteach", "Let's look at this idea again in a different way.")
 
     def _resume_parent(self, state, ctx):
         """A probe or sub-skill finished; continue the parent's diagnosis or return to it."""
@@ -113,6 +112,9 @@ class PrereqGraph(Strategy):
             parent["probe"], parent["probe_idx"] = [], 0
             ctx.log("return", set_id=parent["set"])
             self.queue_message(state, f"Now back to: {self.set_title(parent['set'])}.")
+
+    def allow_retry(self, state):
+        return not (state["stack"] and state["stack"][-1]["mode"] == "probe")
 
     def progress(self, state):
         goals = self._goals()

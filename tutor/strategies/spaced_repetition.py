@@ -59,7 +59,7 @@ class SpacedRepetition(Strategy):
                     state["cards"][sid] = {"box": 0, "due": now, "seen": True, "lapses": 0, "reviews": 0}
                     state["new_today"] += 1
                     ctx.log("new_card", set_id=sid)
-                    self.queue_activity(state, self.pack.sets[sid].get("activity"), "New word")
+                    self.teach(state, sid, "intro", "")
                     return None
         # 4. missed cards still waiting: bring the earliest forward rather than idling
         if state["relearn"]:
@@ -88,7 +88,7 @@ class SpacedRepetition(Strategy):
             card["due"] = ctx.now()
             state["relearn"].append({"set": set_id, "due_step": state["step"] + int(self.cfg.get("relearn_gap", 3))})
             ctx.log("lapse", set_id=set_id, lapses=card["lapses"])
-            self.queue_activity(state, self.pack.sets[set_id].get("activity"), "Let's look at this word again.")
+            self.teach(state, set_id, "lapse", "Let's look at this word again.")
 
     def progress(self, state):
         cards = state["cards"]

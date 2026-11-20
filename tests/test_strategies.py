@@ -138,4 +138,4 @@ def test_sr_missed_word_comes_back_and_leech_alerts(engine):
     assert len(idx) >= 3
     assert any(a["set_id"] == "W_FRAGILE" for a in engine.store.alerts() if a["kind"] == "stuck")
     # the intro card is re-shown after a miss
-    assert sum(1 for t in trace if t[0] == "activity" and t[1] == "fragile") >= 2
+    assert sum(1 for t in trace if t[0] == "explain" and t[1] == "fragile") >= 2
