@@ -14,7 +14,10 @@ from fastapi import Body, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .buddy.engine import Buddy, ConsentRequired
+import base64
+import binascii
+
+from .buddy.engine import Buddy, ConsentRequired, PhotoConsentRequired
 from .engine import Engine
 from .pack import load_packs
 from .store import Store
@@ -38,7 +41,7 @@ def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, 
     eng = engine or Engine(load_packs(packs_dir), store)
     app = FastAPI(title="Multi-strategy tutor")
     app.state.engine = eng
-    buddy = Buddy(store, llm=buddy_llm)
+    buddy = Buddy(store, llm=buddy_llm, photo_dir=os.environ.get("TUTOR_PHOTOS") or (Path(db_path).parent / "photos" if db_path else None))
     app.state.buddy = buddy
 
     def pack_or_404(pack_id, student_facing=False):
@@ -168,30 +171,58 @@ def create_app(packs_dir: str | Path | None = None, db_path: str | None = None, 
             return fn(*a)
         except ConsentRequired:
             raise HTTPException(403, "parental consent needed")
+        except PhotoConsentRequired:
+            raise HTTPException(403, "parental consent for photos needed")
 
     @app.get("/api/buddy/{student}/status")
     def buddy_status(student: str):
         p = buddy.profile(_sid(student))
-        return {"consent": bool(p.get("consent")), "grade": p.get("grade"), "demo": getattr(buddy.llm, "demo", False)}
+        return {"consent": bool(p.get("consent")), "photo_consent": bool((p.get("consent") or {}).get("photos")),
+                "grade": p.get("grade"), "demo": getattr(buddy.llm, "demo", False)}
 
     @app.post("/api/buddy/{student}/consent")
     def buddy_consent(student: str, parent_name: str = Body(...), relation: str = Body(...),
-                      agree: bool = Body(...), grade: int | None = Body(None)):
+                      agree: bool = Body(...), grade: int | None = Body(None), photos: bool = Body(False)):
         if not agree:
             raise HTTPException(400, "consent not given")
         try:
-            buddy.give_consent(_sid(student), parent_name, relation, grade)
+            buddy.give_consent(_sid(student), parent_name, relation, grade, photos=photos)
         except ValueError as e:
             raise HTTPException(400, str(e))
         return {"ok": True}
+
+    @app.post("/api/buddy/{student}/consent_photos")
+    def buddy_consent_photos(student: str, parent_name: str = Body(...), agree: bool = Body(...)):
+        if not agree:
+            raise HTTPException(400, "consent not given")
+        try:
+            _buddy(buddy.give_photo_consent, _sid(student), parent_name)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        return {"ok": True}
+
+    @app.get("/api/buddy/photo/{photo_id}")
+    def buddy_photo(photo_id: str):
+        path = buddy.photos.path(photo_id)
+        if not path:
+            raise HTTPException(404, "no such photo")
+        return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=86400"})
 
     @app.post("/api/buddy/{student}/start")
     def buddy_start(student: str):
         return _buddy(buddy.start, _sid(student))
 
     @app.post("/api/buddy/{student}/message")
-    def buddy_message(student: str, text: str = Body(..., embed=True)):
-        return _buddy(buddy.message, _sid(student), text)
+    def buddy_message(student: str, text: str = Body("", embed=True), image: str | None = Body(None, embed=True)):
+        photo = None
+        if image:
+            if len(image) > 17_000_000:
+                raise HTTPException(413, "photo too large")
+            try:
+                photo = base64.b64decode(image.split(",", 1)[-1], validate=True)
+            except (binascii.Error, ValueError):
+                raise HTTPException(400, "photo could not be read")
+        return _buddy(buddy.message, _sid(student), text, photo)
 
     @app.post("/api/buddy/{student}/stop")
     def buddy_stop(student: str):

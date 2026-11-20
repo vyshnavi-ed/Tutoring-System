@@ -22,6 +22,15 @@
   .toolbar select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); }
   .disc li { margin: 6px 0; }
   label.f { display: block; margin: 12px 0 4px; font-size: 14px; color: var(--muted); }
+  .bubble img { display: block; max-width: 260px; max-height: 260px; border-radius: 10px; margin-bottom: 6px; }
+  .bubble .refused { font-size: 13px; opacity: .85; font-style: italic; }
+  .cam { width: 52px; height: 48px; font-size: 22px; padding: 0; flex: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+         border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .pending { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; }
+  .pending img { height: 64px; border-radius: 8px; border: 1px solid var(--line); }
+  .chat.drop { outline: 3px dashed var(--accent); outline-offset: 6px; border-radius: 12px; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .modal .panel { max-width: 460px; }
   select.f { font: inherit; padding: 9px; border-radius: 8px; border: 1px solid var(--line); width: 100%; background: #fff; }
 </style>
 </head>
@@ -72,20 +81,24 @@ function consentScreen() {
     <select class="f" id="rel"><option value="">Choose…</option><option>Mother</option><option>Father</option><option>Guardian</option><option>Other family member</option></select>
     <label class="f">Child's class</label>
     <select class="f" id="gr"><option value="">Choose…</option><option value="6">Class 6</option><option value="7">Class 7</option><option value="8">Class 8</option></select>
-    <label class="row" style="margin-top:14px;gap:8px;align-items:flex-start"><input type="checkbox" id="ag" style="margin-top:4px">
+    <label class="row" style="margin-top:14px;gap:8px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ag" style="margin-top:4px">
       <span>I am ${esc(student)}'s parent or guardian and I agree to this information being saved and shared with their teacher.</span></label>
+    <label class="row" style="margin-top:10px;gap:8px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="ph" style="margin-top:4px">
+      <span>Also allow ${esc(student)} to send <b>photos of plants and objects</b> (optional). Photos are checked first: any showing people, animals or personal details are refused and never saved. Location data is removed from every photo.</span></label>
     <div class="actions"><button class="primary" id="ok">Agree and continue</button><span class="small" id="err" style="color:var(--bad)"></span></div>
     <p class="small muted">Prototype: this checkbox is not a verified consent process.</p></div>`;
   document.getElementById("ok").onclick = async () => {
     const body = { parent_name: document.getElementById("pn").value, relation: document.getElementById("rel").value,
-      grade: +document.getElementById("gr").value || null, agree: document.getElementById("ag").checked };
+      grade: +document.getElementById("gr").value || null, agree: document.getElementById("ag").checked,
+      photos: document.getElementById("ph").checked };
     if (!body.parent_name.trim() || !body.relation || !body.agree) { document.getElementById("err").textContent = "Please fill in your name, relationship and tick the box."; return; }
     await api.post(B() + "/consent", body); boot();
   };
 }
 
 function bubbles(turns) {
-  return turns.map(t => `<div class="bubble ${t.role}">${esc(t.text)}</div>`).join("");
+  return turns.map(t => `<div class="bubble ${t.role}">${t.photo ? `<img src="/api/buddy/photo/${t.photo}" alt="photo">` : ""}${
+    t.photo_refused ? `<div class="refused">📷 photo not kept</div>` : esc(t.text)}</div>`).join("");
 }
 
 function chat(view, demo) {
@@ -99,9 +112,11 @@ function chat(view, demo) {
       <button id="stop">I'm done for today</button>
     </div>
     <div class="chat" id="chat">${bubbles(view.turns)}</div>
+    <div id="pending"></div>
     <div class="composer" id="composer">
+      <label class="cam" title="Add a photo of a plant or object">📷<input type="file" id="file" accept="image/*" hidden></label>
       <button class="mic" id="mic" title="Speak">🎤</button>
-      <textarea id="msg" rows="2" placeholder="Type or press 🎤 to talk…"></textarea>
+      <textarea id="msg" rows="2" placeholder="Type, press 🎤 to talk, or paste a photo…"></textarea>
       <button class="primary send" id="send">Send</button>
     </div>`;
   document.getElementById("lang").value = lang;
@@ -113,6 +128,7 @@ function chat(view, demo) {
   send.onclick = () => sendText(msg.value);
   msg.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); } };
   setupMic();
+  setupPhotos();
   scrollEnd();
   if (view.closed) closed();
   if (!view.resumed) say(lastTutor(view));
@@ -121,14 +137,83 @@ function chat(view, demo) {
 function lastTutor(v) { const t = [...v.turns].reverse().find(t => t.role === "tutor"); return t ? t.text : ""; }
 function scrollEnd() { window.scrollTo(0, document.body.scrollHeight); }
 
+let pendingPhoto = null;
+
 async function sendText(text) {
-  text = (text || "").trim(); if (!text) return;
+  text = (text || "").trim(); if (!text && !pendingPhoto) return;
+  const image = pendingPhoto;
   const c = document.getElementById("chat");
-  c.insertAdjacentHTML("beforeend", `<div class="bubble learner">${esc(text)}</div><div class="bubble tutor thinking" id="th">…</div>`);
-  document.getElementById("msg").value = ""; scrollEnd();
+  c.insertAdjacentHTML("beforeend", `<div class="bubble learner">${image ? `<img src="${image}">` : ""}${esc(text)}</div>
+    <div class="bubble tutor thinking" id="th">${image ? "Checking your photo…" : "…"}</div>`);
+  document.getElementById("msg").value = ""; setPending(null); scrollEnd();
   document.getElementById("send").disabled = true;
-  try { update(await api.post(B() + "/message", { text })); }
+  try { update(await api.post(B() + "/message", image ? { text, image } : { text })); }
+  catch (e) {
+    if (String(e.message).includes("consent for photos")) {
+      document.getElementById("th")?.remove(); c.lastElementChild?.remove();
+      photoConsent(() => { setPending(image); document.getElementById("msg").value = text; });
+    } else { document.getElementById("th").textContent = "Something went wrong sending that. Please try again."; }
+  }
   finally { const s = document.getElementById("send"); if (s) s.disabled = false; }
+}
+
+// ---------------- photos: camera/file button, paste, drag-and-drop; shrunk in the browser before upload
+function setPending(dataUrl) {
+  pendingPhoto = dataUrl;
+  const box = document.getElementById("pending"); if (!box) return;
+  box.innerHTML = dataUrl ? `<div class="pending"><img src="${dataUrl}"><span>Photo ready — say what you notice in it, then Send.</span>
+    <button class="link" id="unp">✕ Remove</button></div>` : "";
+  if (dataUrl) document.getElementById("unp").onclick = () => setPending(null);
+}
+
+function shrink(file) {
+  return new Promise((ok, bad) => {
+    if (!file || !file.type.startsWith("image/")) return bad(new Error("not an image"));
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const cv = document.createElement("canvas");
+      cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url); ok(cv.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => bad(new Error("could not read image"));
+    img.src = url;
+  });
+}
+
+async function takeFile(file) {
+  try { setPending(await shrink(file)); document.getElementById("msg").focus(); }
+  catch { alert("That file isn't a photo I can read."); }
+}
+
+function setupPhotos() {
+  document.getElementById("file").onchange = e => { if (e.target.files[0]) takeFile(e.target.files[0]); e.target.value = ""; };
+  document.getElementById("msg").onpaste = e => {
+    const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+    if (item) { e.preventDefault(); takeFile(item.getAsFile()); }
+  };
+  const chatEl = document.getElementById("chat");
+  ["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); chatEl.classList.add("drop"); }));
+  ["dragleave", "drop"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); chatEl.classList.remove("drop"); }));
+  document.addEventListener("drop", e => { const f = e.dataTransfer?.files?.[0]; if (f) takeFile(f); });
+}
+
+function photoConsent(done) {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `<div class="panel"><h3 style="margin-top:0">Ask a parent or guardian 📷</h3>
+    <p class="small">${esc(student)} wants to send photos of plants and objects to the Science Buddy. Every photo is checked first: photos showing people, animals or personal details are refused and never saved. Location data is removed from every photo. Saved photos can be seen by ${esc(student)}'s teacher.</p>
+    <label class="f">Parent or guardian's name</label><input type="text" id="cpn">
+    <label class="row" style="margin-top:10px;gap:8px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="cag" style="margin-top:4px"><span>I agree to photos of plants and objects being saved.</span></label>
+    <div class="actions"><button class="primary" id="cok">Agree</button><button id="cno">Not now</button><span class="small" id="cerr" style="color:var(--bad)"></span></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector("#cno").onclick = () => m.remove();
+  m.querySelector("#cok").onclick = async () => {
+    const parent_name = m.querySelector("#cpn").value.trim(), agree = m.querySelector("#cag").checked;
+    if (!parent_name || !agree) { m.querySelector("#cerr").textContent = "Please add your name and tick the box."; return; }
+    await api.post(B() + "/consent_photos", { parent_name, agree }); m.remove(); done();
+  };
 }
 
 function update(view) {

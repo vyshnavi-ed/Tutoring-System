@@ -1,11 +1,14 @@
 """Science Buddy conversation engine: sessions, learner profile, guardrails, assessment records."""
 from __future__ import annotations
 
+import base64
 import json
 import time
+from pathlib import Path
 
 from . import guards
 from .llm import default_llm
+from .photos import ALLOWED_CATEGORIES, REFUSALS, PhotoStore, clean_image
 from .prompt import CHAPTERS, build_system
 from .skills import ALL, LEVELS, STAGES, choose_focus
 
@@ -36,9 +39,17 @@ class ConsentRequired(Exception):
     pass
 
 
+class PhotoConsentRequired(Exception):
+    pass
+
+
+MAX_IMAGES_IN_CONTEXT = 2   # older photos are mentioned in words only, to keep each turn fast and cheap
+
+
 class Buddy:
-    def __init__(self, store, llm=None, clock=time.time):
+    def __init__(self, store, llm=None, clock=time.time, photo_dir=None):
         self.store, self.llm, self.clock = store, llm or default_llm(), clock
+        self.photos = PhotoStore(photo_dir or Path(__file__).resolve().parents[2] / "photos")
         with store.lock:
             store.conn.executescript(SCHEMA)
 
@@ -57,17 +68,29 @@ class Buddy:
                          "profile=excluded.profile, updated=excluded.updated",
                          (student_id, json.dumps(profile), self.clock()))
 
-    def give_consent(self, student_id, parent_name, relation, grade=None):
+    def give_consent(self, student_id, parent_name, relation, grade=None, photos=False):
         """Prototype consent record. Production needs *verifiable* parental consent (e.g. OTP to a parent)."""
         if not parent_name.strip() or not relation.strip():
             raise ValueError("parent name and relationship are required")
         p = self.profile(student_id)
         p["consent"] = {"by": parent_name.strip(), "relation": relation.strip(), "ts": self.clock(),
-                        "method": "checkbox (prototype — not verifiable)"}
+                        "method": "checkbox (prototype — not verifiable)", "photos": bool(photos)}
         if grade:
             p["grade"] = int(grade)
         self._save(student_id, p)
         return p
+
+    def give_photo_consent(self, student_id, parent_name):
+        p = self.profile(student_id)
+        if not p.get("consent"):
+            raise ConsentRequired()
+        if not parent_name.strip():
+            raise ValueError("parent name is required")
+        p["consent"].update(photos=True, photos_by=parent_name.strip(), photos_ts=self.clock())
+        self._save(student_id, p)
+
+    def has_photo_consent(self, student_id):
+        return bool((self.profile(student_id).get("consent") or {}).get("photos"))
 
     def has_consent(self, student_id):
         rows = self.store._rows("SELECT profile FROM buddy_profiles WHERE student_id=?", (student_id,))
@@ -114,18 +137,31 @@ class Buddy:
         self._tutor_turn(student_id, sess, profile, learner_text="")
         return self._view(student_id, sess, self._turns(sess["id"]))
 
-    def message(self, student_id, text) -> dict:
+    def message(self, student_id, text, photo: bytes | None = None) -> dict:
         if not self.has_consent(student_id):
             raise ConsentRequired()
+        if photo is not None and not self.has_photo_consent(student_id):
+            raise PhotoConsentRequired()
         sess = self._open_session(student_id)
         if not sess:
             self.start(student_id)
             sess = self._open_session(student_id)
-        text = guards.redact(str(text).strip())[:2000]
-        if not text:
+        text = guards.redact(str(text or "").strip())[:2000]
+        photo_id = None
+        if photo is not None:
+            verdict = self._check_photo(photo)
+            if verdict["category"] not in ALLOWED_CATEGORIES:
+                return self._refuse_photo(student_id, sess, text, verdict)
+            photo_id = self.photos.save(student_id, verdict["jpeg"])
+        if not text and not photo_id:
             return self._view(student_id, sess, self._turns(sess["id"]))
         concern = guards.wellbeing_concern(text)
-        self._add_turn(sess["id"], student_id, "learner", text, {"wellbeing_match": concern} if concern else None)
+        meta = {}
+        if concern:
+            meta["wellbeing_match"] = concern
+        if photo_id:
+            meta["photo"] = photo_id
+        self._add_turn(sess["id"], student_id, "learner", text, meta)
         if concern:
             self._wellbeing_alert(student_id, sess, f"Possible worrying disclosure (matched “{concern}”).", text)
         profile = self.profile(student_id)
@@ -133,6 +169,31 @@ class Buddy:
         if out.get("end_session") and sess["closing"]:
             self._close(sess["id"])
         return self._view(student_id, self._session(sess["id"]), self._turns(sess["id"]))
+
+    def _check_photo(self, data: bytes) -> dict:
+        try:
+            jpeg = clean_image(data)
+        except ValueError:
+            return {"category": "unclear", "reason": "not a readable image"}
+        try:
+            v = self.llm.screen_image(jpeg)
+        except Exception as e:  # can't check -> never store
+            self.store.add_event("system", PACK_ID, "llm_error", {"error": str(e)[:300], "during": "photo check"})
+            v = {"category": "unchecked", "reason": "photo check failed"}
+        return {**v, "jpeg": jpeg}
+
+    def _refuse_photo(self, student_id, sess, text, verdict):
+        cat = verdict["category"]
+        self.store.add_event(student_id, PACK_ID, "photo_refused",
+                             {"category": cat, "reason": verdict.get("reason", ""), "session": sess["id"]})
+        if cat == "inappropriate":
+            self.store.add_alert(student_id, PACK_ID, "wellbeing", f"session:{sess['id']}",
+                                 "A photo was refused as inappropriate (not stored). Please check in with the learner.",
+                                 {"session": sess["id"], "excerpt": f"[photo refused: {verdict.get('reason', '')}] {text}"})
+        self._add_turn(sess["id"], student_id, "learner", text or "[sent a photo]", {"photo_refused": cat})
+        self._add_turn(sess["id"], student_id, "tutor", REFUSALS.get(cat, REFUSALS["unclear"]),
+                       {"focus": sess["focus"], "photo_refusal": cat})
+        return self._view(student_id, sess, self._turns(sess["id"]))
 
     def stop(self, student_id) -> dict:
         """Learner pressed 'I'm done for today': the buddy closes with a reflection and a next question."""
@@ -153,15 +214,32 @@ class Buddy:
 
     # ------------------------------------------------------------ one tutor turn
     def _messages(self, turns):
+        recent = [t["meta"].get("photo") for t in turns if t["meta"].get("photo")][-MAX_IMAGES_IN_CONTEXT:]
         msgs = []
         for t in turns:
             role = "assistant" if t["role"] == "tutor" else "user"
-            if msgs and msgs[-1]["role"] == role:
-                msgs[-1]["content"] += "\n" + t["text"]
+            blocks = []
+            pid = t["meta"].get("photo")
+            if pid:
+                data = self.photos.load(pid) if pid in recent else None
+                if data:
+                    blocks.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+                                                               "data": base64.b64encode(data).decode()}})
+                    blocks.append({"type": "text", "text": t["text"] or "[sent this photo without saying anything yet]"})
+                else:
+                    blocks.append({"type": "text", "text": "[a photo sent earlier] " + (t["text"] or "")})
             else:
-                msgs.append({"role": role, "content": t["text"]})
+                blocks.append({"type": "text", "text": t["text"]})
+            if msgs and msgs[-1]["role"] == role:
+                msgs[-1]["content"] += blocks
+            else:
+                msgs.append({"role": role, "content": blocks})
         if msgs and msgs[0]["role"] == "assistant":
-            msgs.insert(0, {"role": "user", "content": "[session start]"})
+            msgs.insert(0, {"role": "user", "content": [{"type": "text", "text": "[session start]"}]})
+        # plain strings where there is no image keeps requests simple
+        for m in msgs:
+            if all(b["type"] == "text" for b in m["content"]):
+                m["content"] = "\n".join(b["text"] for b in m["content"])
         return msgs
 
     def _tutor_turn(self, student_id, sess, profile, learner_text, concern=None):
@@ -290,7 +368,10 @@ class Buddy:
     def _view(self, student_id, sess, turns, resumed=False):
         return {"session_id": sess["id"], "closed": bool(sess["closed"]), "closing": bool(sess["closing"]),
                 "resumed": resumed, "demo": getattr(self.llm, "demo", False),
-                "turns": [{"role": t["role"], "text": t["text"]} for t in turns if t["role"] in ("learner", "tutor")]}
+                "photo_consent": self.has_photo_consent(student_id),
+                "turns": [{"role": t["role"], "text": t["text"], "photo": t["meta"].get("photo"),
+                           "photo_refused": t["meta"].get("photo_refused")}
+                          for t in turns if t["role"] in ("learner", "tutor")]}
 
     def progress(self, student_id) -> dict:
         """Learner-facing: specific things they can now do, in plain words — no levels."""
