@@ -370,7 +370,8 @@ class Buddy:
                 "resumed": resumed, "demo": getattr(self.llm, "demo", False),
                 "photo_consent": self.has_photo_consent(student_id),
                 "turns": [{"role": t["role"], "text": t["text"], "photo": t["meta"].get("photo"),
-                           "photo_refused": t["meta"].get("photo_refused")}
+                           "photo_refused": t["meta"].get("photo_refused"),
+                           "wellbeing": bool(t["meta"].get("wellbeing_match"))}
                           for t in turns if t["role"] in ("learner", "tutor")]}
 
     def progress(self, student_id) -> dict:
