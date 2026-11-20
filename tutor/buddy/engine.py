@@ -377,7 +377,7 @@ class Buddy:
         """Learner-facing: specific things they can now do, in plain words — no levels."""
         p = self.profile(student_id)
         return {"name": p["name"], "achievements": p["achievements"][-10:][::-1],
-                "inquiries": [{"title": i["title"], "question": i["question"], "task": i["task"], "status": i["status"]}
+                "inquiries": [{"title": i["title"], "question": i["question"], "task": i["task"], "status": i["status"], "stage": i.get("stage")}
                               for i in p["inquiries"]][::-1]}
 
     def teacher_view(self, student_id) -> dict:
