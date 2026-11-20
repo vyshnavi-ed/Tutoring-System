@@ -33,13 +33,19 @@ async function home() {
   packs = (await api.get("/api/packs")).filter(p => p.status === "approved");
   app.innerHTML = `
     <div class="panel" style="margin-bottom:20px">
-      <label class="small muted">Your name</label>
+      <label class="small muted">Your first name or nickname</label>
       <div class="row" style="margin-top:6px">
         <input type="text" id="name" placeholder="e.g. Asha" value="${esc(student)}" style="max-width:320px">
       </div>
     </div>
     <h2 style="font-size:18px">Choose a subject</h2>
-    <div class="grid">${packs.map(p => `
+    <div class="grid">
+      <div class="panel pack-card" data-buddy="1" style="border-color:#c9b8ec;background:#faf7ff">
+        <span class="muted small">Science · Classes 6–8</span>
+        <h3>🔍 Science Buddy</h3>
+        <div class="row" style="gap:6px"><span class="badge" style="background:#efe7fd;color:#5b37a0">Open inquiry</span><span class="badge ok">Text or voice</span></div>
+        <p class="small muted" style="margin:6px 0 0">Tell the Buddy something you noticed today. It helps you investigate it with things at home — by asking, not telling.</p>
+      </div>${packs.map(p => `
       <div class="panel pack-card" data-id="${p.id}">
         <span class="muted small">${esc(p.subject)}</span>
         <h3>${esc(p.title)}</h3>
@@ -52,6 +58,7 @@ async function home() {
     const n = document.getElementById("name").value.trim();
     if (!n) { document.getElementById("name").focus(); return; }
     student = n; localStorage.setItem("tutor_student", n); setWho();
+    if (el.dataset.buddy) { location.href = "/buddy"; return; }
     start(el.dataset.id);
   });
 }

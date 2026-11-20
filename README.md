@@ -43,13 +43,43 @@ In every subject, after **3 wrong answers in a row on the same set** the teacher
 student is told help is coming. Free-text answers that can't be graded confidently are sent to the
 teacher for review.
 
+## Science Buddy (open inquiry, classes 6–8)
+
+A separate mode, specified in [`docs/science-buddy-design.md`](docs/science-buddy-design.md), which is the source of truth
+for its behaviour. The child tells an AI "curious friend" something they noticed. The Buddy turns it into observations,
+an investigable question and a small, safe investigation at home, by asking rather than telling, one short question
+per turn, by text or voice (browser speech; best in Chrome).
+
+- **Learner profile per child:** the 12 process skills at Emerging, Developing or Independent, the last two pieces of
+  evidence for each, every level change with a one-line reason, the inquiries done (tagged to NCERT chapters after the
+  fact), and self-assessments. Each session has a **focus skill** chosen in code: basics before integrated skills,
+  matched to the inquiry's stage.
+- **Memory:** open inquiries and the task the child went off to do are given to the Buddy next session ("How's the
+  tulsi plant doing?"). A session left open for under 3 hours is resumed.
+- **Guardrails in code, not just in the prompt:**
+  - unsafe suggestions (flames, sharp tools, electricity, chemicals, tasting, disturbing animals, heat without an
+    adult) are blocked and regenerated
+  - the Buddy can't claim to be a person
+  - one question per turn
+  - phone numbers, emails and addresses are removed before storing or sending
+  - possible disclosures (hurt, bullied, unsafe, very upset) are flagged for a person to review, always get a
+    "tell a trusted adult" reply, and are never used for skill assessment
+- **Consent:** nothing is stored until a parent or guardian agrees on the consent screen. This is a *prototype*
+  checkbox; production needs verifiable parental consent.
+- **Teacher dashboard → Science Buddy:** a class grid of skill levels, each learner's evidence, level changes with
+  reasons, inquiries and full conversations. Wellbeing flags appear under Alerts.
+- **Needs `ANTHROPIC_API_KEY`.** Without it, the Buddy runs in *demo mode* with canned replies, so you can try the
+  screens but not the tutoring. Model: `TUTOR_BUDDY_MODEL` (default `claude-sonnet-5-5`).
+- Code: `tutor/buddy/` (skills and focus choice, prompt built from the design doc, guards, engine, NCERT chapter index,
+  noticing starters). The NCERT books are used only to build the chapter index for tagging.
+
 ## Run it
 
 ```bash
 pip install -r requirements.txt
 uvicorn tutor.api:app --reload      # or: python -m tutor.api
 ```
-- Student view: http://localhost:8000/
+- Student view: http://localhost:8000/ (the Science Buddy is the first card; direct link http://localhost:8000/buddy)
 - Teacher dashboard: http://localhost:8000/teacher (alerts, each student's path, content review and approval)
 
 Optional: `export ANTHROPIC_API_KEY=...` turns on AI grading for free-text answers (otherwise a

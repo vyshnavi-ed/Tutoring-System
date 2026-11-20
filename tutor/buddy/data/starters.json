@@ -1,0 +1,13 @@
+{
+  "_note": "Noticing starters for days when the learner arrives with no question. Everyday, safe, no special kit.",
+  "starters": [
+    {"id": "shadows", "mission": "Find a shadow outside or by a window. Mark where its tip is, then look again in an hour.", "skills": ["observing", "measuring", "predicting"]},
+    {"id": "ants", "mission": "Put a tiny bit of sugar and a tiny bit of salt near where you've seen ants. Watch from a distance for five minutes — don't disturb them.", "skills": ["observing", "questioning", "experimenting"]},
+    {"id": "ice", "mission": "Take two ice cubes. Put one on a steel plate and one on a cloth. Which melts first?", "skills": ["predicting", "observing", "controlling_variables"]},
+    {"id": "seeds", "mission": "Put a few moong or chana seeds on a damp cloth. Check them every morning.", "skills": ["observing", "measuring", "communicating"]},
+    {"id": "cloth", "mission": "Hang two small wet cloths: one in the sun, one in the shade. Check every 15 minutes.", "skills": ["predicting", "controlling_variables", "interpreting_data"]},
+    {"id": "window", "mission": "Spend two minutes looking at something near a window and tell me three things you notice.", "skills": ["observing", "communicating"]},
+    {"id": "leaves", "mission": "Collect five different leaves that have already fallen. How could you sort them?", "skills": ["classifying", "observing"]},
+    {"id": "floating", "mission": "Gather a few small kitchen things (a spoon, a bottle cap, a leaf, a coin). Which do you think will float in a bowl of water?", "skills": ["predicting", "classifying", "experimenting"]}
+  ]
+}
