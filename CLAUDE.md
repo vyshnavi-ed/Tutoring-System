@@ -100,7 +100,8 @@ chat decided, so work can continue without it. Keep it up to date when decisions
 - A science topic pack using `real_materials`, aligned to the Agastya activity format (a skill for that format exists
   in the owner's workspace).
 - Shared prerequisites across topic packs (currently each pack is self-contained, e.g. LCM is duplicated).
-- Hosting (e.g. Render or Railway) so students can use a link; real authentication; verifiable parental consent;
+- Hosting: `Dockerfile` and `render.yaml` are prepared for Render (persistent disk at `/data`). Vercel was considered
+  and rejected, because this server needs a persistent disk for SQLite and photos. Not deployed yet. Real authentication; verifiable parental consent;
   sandboxing for code answers.
 
 ## How to run and test

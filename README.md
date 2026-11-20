@@ -92,6 +92,27 @@ Optional: `export ANTHROPIC_API_KEY=...` turns on AI grading for free-text answe
 keyword check is used and the teacher is asked to confirm), AI follow-up questions in inquiry episodes
 (otherwise authored follow-ups are used for very short answers), and AI pack authoring.
 
+## Hosting (prototype, not ready for children)
+
+The app is one long-running Python server with a SQLite database and kept photos on disk. The included
+`Dockerfile` and `render.yaml` are set up for Render's **free tier**. Its limits:
+- **Data is erased** on every restart or redeploy (no persistent disk on the free plan). Use it for previews only.
+- **Sleeps** after about 15 minutes idle; the first load can take about a minute.
+
+For data that must last, use a paid plan with a disk (add a `disk` block to `render.yaml` and set the plan to
+`starter`). Vercel is not a good fit, because its functions don't keep files between requests.
+
+To deploy on Render:
+1. Push this repo to GitHub, then in Render choose **New → Blueprint** and pick the repo. Render reads `render.yaml`.
+2. In the service's **Environment** tab, add `ANTHROPIC_API_KEY` with your key. Don't put the key in any file.
+3. Open the URL Render gives you and add `/buddy` to it.
+
+Before sharing the link with students, these must be done:
+- **Authentication:** the app has none. The teacher dashboard and all student data are public to anyone with the link.
+- **Verifiable parental consent:** the current consent screen is a prototype checkbox.
+- **Wellbeing keyword list:** needs educator review, and Kannada words still need adding.
+- **Code sandbox:** code answers are not sandboxed (see Prototype limits).
+
 Tests: `pytest -q`. They run simulated students through every strategy, including the exact sequence
 from the thesis's Figure 4.4.
 

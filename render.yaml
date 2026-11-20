@@ -1,0 +1,15 @@
+# Render Blueprint: one free web service.
+# Free tier: no persistent disk, so the database and kept photos are erased on every restart or redeploy,
+# and the service sleeps after about 15 minutes idle (first load takes about a minute). Fine for previews only.
+# Set ANTHROPIC_API_KEY in the Render dashboard (never in this file).
+services:
+  - type: web
+    name: science-buddy
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TUTOR_BUDDY_MODEL
+        value: claude-sonnet-5-5
