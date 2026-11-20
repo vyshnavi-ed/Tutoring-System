@@ -79,6 +79,13 @@ per turn, by text or voice (browser speech; best in Chrome).
 - Code: `tutor/buddy/` (skills and focus choice, prompt built from the design doc, guards, engine, NCERT chapter index,
   noticing starters). The NCERT books are used only to build the chapter index for tagging.
 
+### Science Buddy interface design
+
+The phone-first screens (home, chat with the inquiry journey, and the remaining screens) are described in
+[`docs/buddy-ui-design.md`](docs/buddy-ui-design.md). It covers the fonts, colour tokens, motion rules, the six journey
+steps, the content rules the Buddy must follow, and the open decisions. The screens are built into the Science Buddy
+page (`/buddy`).
+
 ## Run it
 
 ```bash

@@ -130,6 +130,17 @@ def test_wellbeing_disclosure_flagged_by_code_and_by_ai(mk):
     assert any("unsafe at home" in a["message"] for a in al)
 
 
+def test_view_flags_wellbeing_turns_for_the_child_screen(mk):
+    b, _ = mk([{"reply": "Hi"}, {"reply": "I'm sorry. Please tell a trusted adult today."},
+               {"reply": "What did you notice?"}])
+    consented(b)
+    b.start("Asha")
+    v = b.message("Asha", "the big boys bully me at school")
+    assert [t["wellbeing"] for t in v["turns"] if t["role"] == "learner"] == [True]
+    v = b.message("Asha", "the plant has yellow leaves")
+    assert [t["wellbeing"] for t in v["turns"] if t["role"] == "learner"] == [True, False]
+
+
 def test_missed_disclosure_gets_care_reply_and_no_assessment(mk):
     b, _ = mk([{"reply": "Hi"}, {"reply": "Interesting! What did you notice?",
                                  "evidence": [{"skill": "observing", "quote": "x", "signal": "developing"}]}])

@@ -2,43 +2,242 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>Science Buddy</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500&display=swap">
 <link rel="stylesheet" href="/static/app.css">
 <style>
-  main { max-width: 760px; }
-  .chat { display: flex; flex-direction: column; gap: 10px; min-height: 300px; margin-bottom: 14px; }
-  .bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; line-height: 1.45; font-size: 17px; white-space: pre-wrap; }
-  .bubble.tutor { background: #fff; border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 4px; }
-  .bubble.learner { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .bubble.thinking { color: var(--muted); font-style: italic; }
-  .composer { display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 0; background: var(--bg); padding: 10px 0; }
-  .composer textarea { resize: none; font-size: 17px; }
-  .mic { width: 52px; height: 48px; font-size: 22px; padding: 0; flex: none; }
-  .mic.on { background: var(--bad); border-color: var(--bad); color: #fff; }
-  .send { height: 48px; flex: none; }
-  .banner { background: var(--warn-soft); color: var(--warn); padding: 8px 12px; border-radius: 8px; font-size: 14px; margin-bottom: 12px; }
-  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; font-size: 14px; }
-  .toolbar select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); }
-  .disc li { margin: 6px 0; }
-  label.f { display: block; margin: 12px 0 4px; font-size: 14px; color: var(--muted); }
-  .bubble img { display: block; max-width: 260px; max-height: 260px; border-radius: 10px; margin-bottom: 6px; }
+  /* Design tokens from docs/buddy-ui-design.md. Scoped to this page; app.css names are mapped onto them. */
+  :root {
+    --bg: #F6F5F0; --card: #FFFFFF; --ink: #2F3B35; --ink-soft: #6B7A72;
+    --leaf: #8DB8A0; --leaf-soft: #E4EFE8; --sand: #F2E9DC; --line: #E3E2DA; --face: #CFE5D8;
+    --font: "Nunito", "Avenir Next", system-ui, sans-serif;
+    --accent: var(--leaf); --accent-soft: var(--leaf-soft); --panel: var(--card); --muted: var(--ink-soft);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1F2723; --card: #27312C; --ink: #E6EDE8; --ink-soft: #9DAAA2;
+      --leaf: #7FAE95; --leaf-soft: #2F3D36; --sand: #33302A; --line: #3A4540; --face: #3E5A4C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1F2723; --card: #27312C; --ink: #E6EDE8; --ink-soft: #9DAAA2;
+    --leaf: #7FAE95; --leaf-soft: #2F3D36; --sand: #33302A; --line: #3A4540; --face: #3E5A4C;
+    color-scheme: dark;
+  }
+  body { font-family: var(--font); font-size: 16px; background: var(--bg); color: var(--ink);
+         padding: 0 max(16px, env(safe-area-inset-left, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+  header.top { background: transparent; border: 0; padding: 16px 0 0; max-width: 980px; margin: 0 auto; }
+  header.top h1 { font-size: 18px; font-weight: 500; }
+  header.top a { color: var(--ink-soft); }
+  header.top nav { display: flex; align-items: center; gap: 6px; }
+  @media (max-width: 640px) { header.top nav { width: auto; margin-left: auto; } }
+  main#app { max-width: 420px; margin: 0 auto; padding: 0; }
+  main#app.wide { max-width: 980px; }
+  button, input, textarea, select { font-family: var(--font); }
+  button { border-radius: 999px; }
+  button.primary { border-radius: 999px; padding: 10px 20px; }
+  .panel { border-radius: 14px; border: 0.5px solid var(--line); }
+  .muted { color: var(--ink-soft); }
+  .small { font-size: 14px; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--ink-soft);
+              display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; padding: 0; }
+  .icon-btn:focus-visible, .send:focus-visible, .chip:focus-visible, .mic:focus-visible, .stage-btn:focus-visible,
+  .field textarea:focus-visible, .link-pill:focus-visible { outline: 2px solid var(--leaf); outline-offset: 3px; }
+
+  /* ---------- home */
+  .home { display: flex; flex-direction: column; gap: 32px; min-height: calc(100vh - 80px); }
+  .hello { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin-top: 16px; }
+  .face-wrap { position: relative; width: 112px; height: 112px; margin-top: 40px; }
+  .face { width: 112px; height: 112px; animation: bob 4.5s ease-in-out infinite; display: block; }
+  .eyes { animation: blink 5s infinite; transform-box: view-box; transform-origin: 56px 51px; }
+  .halo { position: absolute; left: -64px; top: -64px; width: 240px; height: 130px; pointer-events: none; overflow: visible; }
+  .halo path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.6s ease-out forwards; }
+  .halo .find { opacity: 0; transform-box: fill-box; transform-origin: center; animation: pop .6s 1.6s ease-out forwards; }
+  .spark { position: absolute; border-radius: 50%; background: var(--leaf); opacity: .7; animation: float 6s ease-in-out infinite; }
+  .s1 { width: 8px; height: 8px; top: 4px; left: 10px; }
+  .s2 { width: 6px; height: 6px; top: 20px; right: 2px; background: var(--sand); animation-delay: -2s; }
+  .s3 { width: 10px; height: 10px; bottom: 6px; left: -4px; background: var(--face); animation-delay: -4s; }
+  .sprout { position: absolute; width: 34px; height: 34px; top: -16px; left: 39px; transform-origin: 50% 100%; animation: sway 3.5s ease-in-out infinite; }
+  .face-wrap.wiggle { animation: wiggle .6s ease-in-out; }
+  .hi { margin: 0; font-size: 16px; color: var(--ink-soft); }
+  h1.q { margin: 0; font-size: 26px; font-weight: 500; line-height: 1.3; text-wrap: balance; }
+  .talk { margin: 0; font-size: 15px; color: var(--ink); background: var(--leaf-soft); padding: 8px 16px; border-radius: 999px; min-height: 1.6em; }
+  .ask { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .mic { width: 88px; height: 88px; border-radius: 50%; border: 0; background: var(--leaf); color: #fff; display: grid; place-items: center;
+         cursor: pointer; position: relative; transition: transform .2s ease; padding: 0; }
+  .mic:active { transform: scale(.97); }
+  .mic::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--leaf); opacity: 0; animation: ripple 3s ease-out infinite; }
+  .mic.on { background: #B3362B; }
+  .or { margin: 0; font-size: 14px; color: var(--ink-soft); }
+  .field { width: 100%; display: flex; align-items: center; gap: 6px; background: var(--card); border: 0.5px solid var(--line);
+           border-radius: 22px; padding: 6px 6px 6px 12px; box-sizing: border-box; }
+  .field textarea { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-size: 16px; padding: 10px 4px;
+                    resize: none; outline: none; line-height: 1.4; max-height: 140px; }
+  .field textarea::placeholder { color: var(--ink-soft); }
+  .send { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--leaf-soft); color: var(--ink); display: grid;
+          place-items: center; cursor: pointer; flex: 0 0 auto; padding: 0; }
+  .send:disabled { opacity: .5; }
+  .starters { display: flex; flex-direction: column; gap: 12px; }
+  .label { margin: 0; font-size: 14px; color: var(--ink-soft); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: .5px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 10px 16px; font-size: 15px; cursor: pointer; transition: transform .2s ease; }
+  .chip:hover { transform: translateY(-2px); }
+  .chip::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--leaf); margin-right: 8px; vertical-align: middle; }
+  .chip:nth-child(4n+1), .chip:nth-child(4n+4) { background: var(--leaf-soft); border-color: transparent; }
+  .chip:nth-child(4n+2) { background: var(--sand); border-color: transparent; }
+  .bottom { margin-top: auto; display: flex; justify-content: center; padding-top: 8px; }
+  .link-pill { color: var(--ink-soft); font-size: 15px; padding: 10px 16px; border-radius: 999px; background: var(--sand); border: 0; cursor: pointer; }
+
+  /* ---------- journey */
+  .app-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .journey { padding: 12px 0 8px; }
+  .journey h2 { margin: 0 0 10px; font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+  .stages { list-style: none; margin: 0; padding: 0 0 4px; display: flex; gap: 2px; }
+  .stage { position: relative; flex: 1 1 0; min-width: 0; text-align: center; }
+  .stage-btn { all: unset; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; border-radius: 12px; padding: 4px; width: 100%; }
+  .stage-btn:focus-visible { outline: 2px solid var(--leaf); outline-offset: 2px; }
+  .stage::before { content: ""; position: absolute; top: 13px; left: -50%; right: 50%; height: 2px; background: var(--line); }
+  .stage:first-child::before { display: none; }
+  .stage.done::before, .stage.now::before { background: var(--leaf); }
+  .node { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); position: relative; z-index: 1; box-sizing: border-box; }
+  .stage.done .node { background: var(--leaf); border-color: var(--leaf); }
+  .stage.now .node { background: var(--card); border-color: var(--leaf); border-width: 4px; box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--leaf); animation: breathe 2.8s ease-in-out infinite; }
+  .stage-name { font-size: 12px; color: var(--ink); line-height: 1.25; }
+  .stage.future .stage-name { color: var(--ink-soft); }
+  .stage.now .stage-name { font-weight: 500; }
+  .stage-hint { display: none; }
+  .tip { margin-top: 12px; background: var(--card); border: .5px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .tip-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .tip h3 { margin: 0 0 8px; font-size: 16px; font-weight: 500; line-height: 1.4; }
+  .tip-x { border: 0; background: transparent; color: var(--ink-soft); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 2px; }
+  .tip ul { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; }
+  .tip li { margin: 4px 0; }
+  .next { display: none; }
+
+  /* ---------- chat */
+  .chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .head { display: flex; align-items: center; gap: 12px; padding: 8px 0 12px; }
+  .head-face { width: 40px; height: 40px; flex: 0 0 auto; }
+  .head h1 { margin: 0; font-size: 18px; font-weight: 500; }
+  .head p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+  .banner { background: var(--sand); color: var(--ink); padding: 8px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 12px; }
+  .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; font-size: 14px; color: var(--ink-soft); }
+  .toolbar select { font: inherit; padding: 4px 8px; border-radius: 8px; border: .5px solid var(--line); background: var(--card); color: var(--ink); }
+  .toolbar button { font-size: 14px; padding: 6px 12px; }
+  .chat { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 220px; padding: 8px 0 16px; }
+  .bubble { max-width: 82%; padding: 12px 16px; border-radius: 18px; line-height: 1.6; font-size: 16px; white-space: pre-wrap; margin: 0; }
+  .bubble.tutor { background: var(--leaf-soft); align-self: flex-start; border-bottom-left-radius: 6px; }
+  .bubble.learner { background: var(--card); border: .5px solid var(--line); align-self: flex-end; border-bottom-right-radius: 6px; }
+  .bubble.thinking { color: var(--ink-soft); font-style: italic; }
+  .bubble img { display: block; max-width: 240px; max-height: 240px; border-radius: 12px; margin-bottom: 6px; }
   .bubble .refused { font-size: 13px; opacity: .85; font-style: italic; }
-  .cam { width: 52px; height: 48px; font-size: 22px; padding: 0; flex: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
-         border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .composer { position: sticky; bottom: 0; background: var(--bg); padding: 8px 0 max(12px, env(safe-area-inset-bottom, 0px)); }
+  .composer .field { padding: 6px 6px 6px 8px; }
+  .composer .field textarea { padding: 9px 4px; overflow: hidden; }
+  .composer .mic { width: 40px; height: 40px; font-size: 0; background: transparent; color: var(--ink-soft); border-radius: 50%; }
+  .composer .mic::before { display: none; }
+  .composer .mic.on { background: #B3362B; color: #fff; }
+  .composer .cam { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--ink-soft); }
+  .composer .hint { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); text-align: center; }
   .pending { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; }
-  .pending img { height: 64px; border-radius: 8px; border: 1px solid var(--line); }
-  .chat.drop { outline: 3px dashed var(--accent); outline-offset: 6px; border-radius: 12px; }
-  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 10; }
-  .modal .panel { max-width: 460px; }
-  select.f { font: inherit; padding: 9px; border-radius: 8px; border: 1px solid var(--line); width: 100%; background: #fff; }
+  .pending img { height: 64px; border-radius: 10px; border: .5px solid var(--line); }
+  .chat.drop { outline: 3px dashed var(--leaf); outline-offset: 6px; border-radius: 14px; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 16px; box-sizing: border-box; }
+  .modal .panel { max-width: 460px; background: var(--card); }
+  label.f { display: block; margin: 12px 0 4px; font-size: 14px; color: var(--ink-soft); }
+  select.f { font: inherit; padding: 9px; border-radius: 10px; border: .5px solid var(--line); width: 100%; background: var(--card); color: var(--ink); }
+  .disc li { margin: 6px 0; }
+
+  /* Phones: journey strip above the chat. Wide screens: journey as a sidebar. */
+  @media (min-width: 760px) {
+    main#app.wide { display: flex; gap: 32px; padding-top: 24px; }
+    .journey { width: 240px; flex: 0 0 240px; padding: 8px 0; position: sticky; top: 24px; align-self: flex-start; }
+    .journey h2 { font-size: 15px; margin-bottom: 18px; }
+    .stages { flex-direction: column; gap: 0; overflow: visible; padding: 0; }
+    .stage { width: auto; text-align: left; display: flex; flex-direction: column; }
+    .stage-btn { flex-direction: row; align-items: flex-start; text-align: left; padding: 0 0 18px; gap: 14px; width: auto; }
+    .stage::before { top: 22px; left: 8px; right: auto; bottom: -18px; width: 2px; height: auto; }
+    .stage:first-child::before { display: none; }
+    .stage .node { margin-top: 2px; flex: 0 0 auto; }
+    .stage-name { display: block; font-size: 15px; }
+    .stage-hint { display: block; font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+    .next { display: block; margin-top: 8px; padding: 14px; border-radius: 12px; background: var(--sand); font-size: 14px; line-height: 1.5; }
+    .next strong { font-weight: 500; display: block; margin-bottom: 4px; }
+    .chat-area { max-width: 640px; }
+    .composer { bottom: 16px; }
+  }
+
+  /* ---------- screens: settings, discoveries, photo notes, wellbeing, listening, session end */
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { border-radius: 999px; padding: 10px 16px; font-size: 15px; border: .5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; text-decoration: none; display: inline-block; }
+  .btn.primary { background: var(--leaf); color: #fff; border-color: transparent; }
+  .screen-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0 12px; }
+  .screen-top h2 { margin: 0; font-size: 20px; font-weight: 500; }
+  .back-pill { border: 0; background: var(--leaf-soft); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+  .plain { display: flex; flex-direction: column; gap: 12px; }
+  .muted-note { color: var(--ink-soft); font-size: 14px; margin: 4px 0 0; line-height: 1.5; }
+  .disc-card { background: var(--card); border: .5px solid var(--line); border-radius: 14px; padding: 14px; display: flex; gap: 12px; align-items: center; }
+  .disc-thumb { width: 52px; height: 52px; border-radius: 12px; background: var(--leaf-soft); flex: 0 0 auto; display: grid; place-items: center; }
+  .disc-card b { display: block; font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+  .disc-card span { font-size: 14px; color: var(--ink-soft); line-height: 1.45; }
+  .note-card { background: var(--sand); border-radius: 14px; padding: 12px 14px; font-size: 15px; line-height: 1.5; display: flex; flex-direction: column; gap: 10px; }
+  .wb { background: var(--card); border: .5px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .wb b { font-weight: 500; }
+  .wb ul { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; }
+  .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; border-bottom: .5px solid var(--line); font-size: 16px; }
+  .switch-row small { display: block; color: var(--ink-soft); font-size: 13px; margin-top: 2px; }
+  .switch { width: 46px; height: 28px; border-radius: 999px; background: var(--leaf); position: relative; flex: 0 0 auto; border: 0; cursor: pointer; padding: 0; }
+  .switch::after { content: ""; position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+  .switch[aria-checked="false"] { background: var(--line); }
+  .switch[aria-checked="false"]::after { right: auto; left: 3px; }
+  .listen { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(92vw, 400px); background: var(--card);
+            border: .5px solid var(--line); border-radius: 18px; padding: 18px; box-sizing: border-box; z-index: 20;
+            display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+  .listen h3 { margin: 0; font-weight: 500; font-size: 18px; }
+  .listen p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+  .listen .mic-live { width: 72px; height: 72px; border-radius: 50%; background: #B3362B; color: #fff; display: grid; place-items: center; position: relative; margin: 6px 0; }
+  .listen .mic-live::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid #B3362B; opacity: .4; animation: ripple 3s ease-out infinite; }
+  .offline { background: var(--sand); border-radius: 12px; padding: 10px 14px; font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+  .end { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 16px; background: var(--card); border: .5px solid var(--line); border-radius: 14px; }
+  .end h2 { margin: 0; font-size: 20px; font-weight: 500; }
+  .end p { margin: 0; color: var(--ink-soft); }
+  .arc { width: 140px; height: 80px; }
+  .pending-card { display: flex; align-items: center; gap: 12px; background: var(--card); border: .5px solid var(--line); border-radius: 14px; padding: 10px; margin-bottom: 10px; font-size: 14px; }
+  .pending-card img { height: 56px; border-radius: 10px; }
+  .dots { display: inline-flex; gap: 6px; vertical-align: middle; }
+  .dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-soft); animation: blink-dot 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: .2s; }
+  .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink-dot { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+  body.large .bubble, body.large .talk, body.large .field textarea, body.large .chat .bubble { font-size: 19px; }
+  body.large .disc-card b, body.large .switch-row, body.large .wb ul { font-size: 18px; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes pop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
+  @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+  @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes ripple { 0% { transform: scale(.95); opacity: .6; } 100% { transform: scale(1.25); opacity: 0; } }
+  @keyframes sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+  @keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-9deg) scale(1.03); } 75% { transform: rotate(9deg) scale(1.03); } }
+  @keyframes breathe { 0%, 100% { box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--leaf); } 50% { box-shadow: 0 0 0 3px var(--card), 0 0 0 7px var(--leaf); } }
+  @media (prefers-reduced-motion: reduce) {
+    .face, .eyes, .spark, .sprout, .mic::before, .stage.now .node { animation: none; }
+    .halo path { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
+    .halo .find { opacity: 1; animation: none; }
+    .face-wrap.wiggle, .chip, .mic { animation: none; transition: none; }
+  }
 </style>
 </head>
 <body>
 <header class="top">
-  <h1>🔍 Science Buddy</h1>
+  <h1>Science Buddy</h1>
   <span class="muted small" id="who"></span>
-  <nav><a href="/">Subjects</a></nav>
+  <nav><a href="/">Subjects</a> <button class="icon-btn" id="gear" aria-label="Settings" title="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg></button></nav>
 </header>
 <main id="app"></main>
 <script src="/static/common.js"></script>
@@ -48,19 +247,91 @@ let student = localStorage.getItem("tutor_student") || "";
 let speak = localStorage.getItem("buddy_speak") === "1";
 let lang = localStorage.getItem("buddy_lang") || "en-IN";
 const B = () => `/api/buddy/${encodeURIComponent(student)}`;
+let startView = null;   // the opening view, shown on the home screen until the child's first message
+
+const FACE_SVG = `<svg class="face" viewBox="0 0 112 112" aria-hidden="true">
+  <circle cx="56" cy="56" r="52" fill="var(--face)"/>
+  <g class="eyes">
+    <ellipse cx="41" cy="52" rx="5" ry="6.5" fill="var(--ink)"/>
+    <ellipse cx="71" cy="52" rx="5" ry="6.5" fill="var(--ink)"/>
+    <circle cx="43" cy="49.5" r="1.6" fill="var(--bg)"/>
+    <circle cx="73" cy="49.5" r="1.6" fill="var(--bg)"/>
+  </g>
+  <path d="M44 70 Q56 80 68 70" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="30" cy="66" r="4" fill="var(--sand)" opacity=".8"/>
+  <circle cx="82" cy="66" r="4" fill="var(--sand)" opacity=".8"/>
+</svg>`;
+const HALO_SVG = `<svg class="halo" viewBox="0 0 240 130" aria-hidden="true">
+  <path pathLength="1" d="M8 120 A112 112 0 0 1 232 120" stroke="#C9D9EE" stroke-width="9" stroke-linecap="round" fill="none" style="animation-delay:0s"/>
+  <path pathLength="1" d="M18 120 A102 102 0 0 1 222 120" stroke="#E3D5EC" stroke-width="9" stroke-linecap="round" fill="none" style="animation-delay:.2s"/>
+  <path pathLength="1" d="M28 120 A92 92 0 0 1 212 120" stroke="#F3D2C2" stroke-width="9" stroke-linecap="round" fill="none" style="animation-delay:.4s"/>
+  <path pathLength="1" d="M38 120 A82 82 0 0 1 202 120" stroke="var(--face)" stroke-width="9" stroke-linecap="round" fill="none" style="animation-delay:.6s"/>
+  <path pathLength="1" d="M48 120 A72 72 0 0 1 192 120" stroke="var(--leaf)" stroke-width="9" stroke-linecap="round" fill="none" style="animation-delay:.8s"/>
+  <path class="find" d="M232 113 L233.5 118.5 L239 120 L233.5 121.5 L232 127 L230.5 121.5 L225 120 L230.5 118.5 Z" fill="#E9C46A"/>
+</svg>`;
+const SPROUT_SVG = `<svg class="sprout" viewBox="0 0 34 34" aria-hidden="true">
+  <path d="M17 33 Q17 20 17 12" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M17 16 Q7 16 5 5 Q16 4 17 16Z" fill="var(--leaf)"/>
+  <path d="M17 12 Q25 12 29 2 Q20 0 17 12Z" fill="var(--sand)"/>
+</svg>`;
+const MIC_SVG = `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+const SMALL_MIC_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+const CAM_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="3"/><circle cx="12" cy="13" r="3.5"/><path d="M9 6l1.5-2h3L15 6"/></svg>`;
+const ARROW_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+const HEAD_FACE_SVG = `<svg class="head-face" viewBox="0 0 40 40" aria-hidden="true">
+  <circle cx="20" cy="20" r="18" fill="var(--face)"/>
+  <ellipse cx="14" cy="18" rx="2" ry="2.5" fill="var(--ink)"/>
+  <ellipse cx="26" cy="18" rx="2" ry="2.5" fill="var(--ink)"/>
+  <path d="M15 26 Q20 30 25 26" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/>
+</svg>`;
+
+// The six journey steps, from docs/buddy-ui-design.md. Each maps onto one or more backend inquiry stages.
+const STAGE_INFO = [
+  { name: "Observe", head: "I look closely", items: [
+    "I explore the object, material or phenomenon.", "I use my senses and tools to notice details.",
+    "I identify similarities and differences.", "I notice things that surprise me or seem interesting.",
+    "I record what I observe through drawings, words or measurements."] },
+  { name: "Wonder", head: "I get curious", items: [
+    "I think about what I have observed.", "I ask questions about what I see.",
+    "I think about why or how something happens.", "I identify what I would like to find out.",
+    "I choose a question that I can investigate."] },
+  { name: "Guess", head: "I think about what might happen", items: [
+    "I think about what I already know about the topic.", "I make a prediction about what might happen.",
+    "I think about why I expect it to happen.", "I share my ideas and possible explanations.",
+    "I remain open to different possibilities."] },
+  { name: "Plan a test", head: "I plan how to find out", items: [
+    "I think about how I can investigate my question.", "I decide what materials and tools I will need.",
+    "I identify what I will change and what I will observe or measure.", "I decide what I need to keep the same.",
+    "I plan the steps of my investigation."] },
+  { name: "Test it", head: "I investigate", items: [
+    "I follow my investigation plan.", "I observe carefully as I carry out the test.",
+    "I measure and collect information.", "I record what happens.", "I repeat the test if needed.",
+    "I notice whether the results match my prediction."] },
+  { name: "My Discovery", head: "I make sense of what I found", items: [
+    "I look at what happened.", "I identify patterns and relationships in my findings.",
+    "I make sense of my observations.", "I compare my findings with my original prediction.",
+    "I explain what I think I discovered using evidence.", "I think about what I could explore next."] }
+];
+// Backend inquiry stage -> index of the journey step (the backend has 7 stages, the journey shows 6).
+const STAGE_INDEX = { observe: 0, question: 1, predict: 2, plan: 3, experiment: 4, interpret: 5, reflect: 5 };
 
 async function boot() {
   if (!student) return askName();
   document.getElementById("who").textContent = `Hi, ${student}`;
   const st = await api.get(B() + "/status");
   if (!st.consent) return consentScreen();
-  chat(await api.post(B() + "/start"), st.demo);
+  const view = await api.post(B() + "/start");
+  if (view.resumed || view.turns.some(t => t.role === "learner")) return chat(view, st.demo);
+  startView = view;
+  home();
 }
 
 function askName() {
-  app.innerHTML = `<div class="panel"><h2 style="margin-top:0">What should I call you?</h2>
+  app.className = "";
+  app.innerHTML = `<div class="panel"><h2 style="margin-top:0;font-weight:500">What should I call you?</h2>
     <p class="muted small">Just your first name or a nickname — not your full name.</p>
-    <input type="text" id="nm" placeholder="e.g. Asha"><div class="actions"><button class="primary" id="ok">Start</button></div></div>`;
+    <input type="text" id="nm" placeholder="e.g. Asha" style="width:100%;box-sizing:border-box;border:.5px solid var(--line);border-radius:12px;padding:12px 14px;font-size:16px;background:var(--card);color:var(--ink)">
+    <div class="actions"><button class="primary" id="ok">Start</button></div></div>`;
   document.getElementById("ok").onclick = () => {
     const v = document.getElementById("nm").value.trim(); if (!v) return;
     student = v; localStorage.setItem("tutor_student", v); boot();
@@ -68,10 +339,11 @@ function askName() {
 }
 
 function consentScreen() {
+  app.className = "";
   app.innerHTML = `<div class="panel">
-    <h2 style="margin-top:0">Ask a parent or guardian 👋</h2>
+    <h2 style="margin-top:0;font-weight:500">Ask a parent or guardian 👋</h2>
     <p>Before ${esc(student)} starts, a parent or guardian needs to agree. Please hand the device to them.</p>
-    <div class="small" style="background:var(--accent-soft);padding:12px 14px;border-radius:8px">
+    <div class="small" style="background:var(--leaf-soft);padding:12px 14px;border-radius:12px">
       <b>What the Science Buddy is:</b> an AI that helps your child investigate things they notice at home, by asking questions — it doesn't give answers.<br><br>
       <b>What is saved:</b> what your child types or says to the Buddy, and notes on which science skills they are building. Their teacher can see these, and conversations that mention your child being hurt or upset are flagged for a person to review.<br><br>
       <b>What is never asked for:</b> full name, address, school name, phone number or photos of people.
@@ -96,28 +368,113 @@ function consentScreen() {
   };
 }
 
-function bubbles(turns) {
-  return turns.map(t => `<div class="bubble ${t.role}">${t.photo ? `<img src="/api/buddy/photo/${t.photo}" alt="photo">` : ""}${
-    t.photo_refused ? `<div class="refused">📷 photo not kept</div>` : esc(t.text)}</div>`).join("");
+// ---------------- home: Buddy's face, one question, voice or typing, starter ideas
+function home() {
+  app.className = "";
+  app.innerHTML = `<section class="home">
+    <div class="hello">
+      <div class="face-wrap" id="faceWrap" title="Tap Buddy">
+        ${HALO_SVG}<span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span>
+        ${SPROUT_SVG}${FACE_SVG}
+      </div>
+      <p class="hi">Hi, ${esc(student)}</p>
+      <h1 class="q">What did you notice today?</h1>
+      <p class="talk" id="talk" aria-live="polite">Tap me, I'm listening!</p>
+    </div>
+    <div class="ask">
+      <button class="mic" id="mic" aria-label="Speak what you noticed">${MIC_SVG}</button>
+      <p class="or">or type it</p>
+      <div class="field">
+        <textarea id="msg" rows="1" placeholder="A shadow, a sound, a plant…" aria-label="Type what you noticed"></textarea>
+        <button class="send" id="send" aria-label="Send">${ARROW_SVG}</button>
+      </div>
+    </div>
+    <div class="starters">
+      <p class="label">No idea yet? Try one of these</p>
+      <div class="chips">
+        ${["Shadows through the day", "Ants and food", "Ice melting", "Seeds sprouting"].map(c => `<button class="chip">${esc(c)}</button>`).join("")}
+      </div>
+    </div>
+    <footer class="bottom"><button class="link-pill" id="disc">My discoveries</button></footer>
+  </section>`;
+
+  const wrap = document.getElementById("faceWrap"), talk = document.getElementById("talk");
+  const lines = ["Hmm, what did you spot?", "Ooh, tell me more!", "I wonder what's going on…", "Something is always happening!", "Show me with your eyes!"];
+  let i = 0;
+  wrap.onclick = () => {
+    i = (i + 1) % lines.length; talk.textContent = lines[i];
+    wrap.classList.remove("wiggle"); void wrap.offsetWidth; wrap.classList.add("wiggle");
+  };
+  document.querySelectorAll(".chip").forEach(c => c.onclick = () => firstMessage(c.textContent));
+  const msg = document.getElementById("msg");
+  msg.oninput = () => { msg.style.height = "auto"; msg.style.height = Math.min(msg.scrollHeight, 140) + "px"; };
+  msg.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); firstMessage(msg.value); } };
+  document.getElementById("send").onclick = () => firstMessage(msg.value);
+  document.getElementById("disc").onclick = discoveries;
+  setupMic(firstMessage);
 }
 
+// The child's first message: open the chat with Buddy's opening, then send what they said.
+async function firstMessage(text) {
+  text = (text || "").trim(); if (!text || !startView) return;
+  const v = startView; startView = null;
+  chat(v, v.demo);
+  await sendText(text);
+}
+
+function bubbles(turns) {
+  const html = turns.map(t => t.photo_refused
+    ? `<div class="note-card"><span>📷 Photo not kept. I can only keep photos of plants and objects, so I haven't saved this one.</span>
+         <div class="btns"><button class="btn" data-pick>Choose another photo</button></div></div>`
+    : `<div class="bubble ${t.role}">${t.photo ? `<img src="/api/buddy/photo/${t.photo}" alt="photo">` : ""}${esc(t.text)}</div>`).join("");
+  const last = [...turns].reverse().find(t => t.role === "learner");
+  return html + (last && last.wellbeing ? `<div class="wb" id="wb">
+      <b>If something is bothering you</b>
+      <span class="muted-note">You don't have to carry it alone. Please talk to a trusted grown-up today.</span>
+      <div id="wbWho" hidden><ul>
+        <li>A parent or guardian at home</li><li>A teacher at school</li><li>A school counsellor</li>
+        <li>Childline India: call 1098 (free, 24 hours)</li></ul></div>
+      <div class="btns"><button class="btn primary" data-who>Who can I talk to?</button>
+        <button class="btn" data-back>Back to my investigation</button></div></div>` : "");
+}
+
+// ---------------- chat: journey on the side (wide) or top (phone), then the conversation
 function chat(view, demo) {
+  app.className = "wide";
   app.innerHTML = `
-    ${demo ? `<div class="banner">Demo mode: no AI key is set, so the Buddy's replies are canned. Add an Anthropic API key to try the real tutor.</div>` : ""}
-    <div class="toolbar">
-      <label class="row" style="gap:6px"><input type="checkbox" id="spk" ${speak ? "checked" : ""}> 🔊 Read replies aloud</label>
-      <select id="lang" title="Language for voice"><option value="en-IN">English (India)</option><option value="hi-IN">हिन्दी</option><option value="kn-IN">ಕನ್ನಡ</option></select>
-      <span style="margin-left:auto"></span>
-      <button class="link" id="disc">⭐ My discoveries</button>
-      <button id="stop">I'm done for today</button>
-    </div>
-    <div class="chat" id="chat">${bubbles(view.turns)}</div>
-    <div id="pending"></div>
-    <div class="composer" id="composer">
-      <label class="cam" title="Add a photo of a plant or object">📷<input type="file" id="file" accept="image/*" hidden></label>
-      <button class="mic" id="mic" title="Speak">🎤</button>
-      <textarea id="msg" rows="2" placeholder="Type, press 🎤 to talk, or paste a photo…"></textarea>
-      <button class="primary send" id="send">Send</button>
+    <nav class="journey" aria-label="Your inquiry journey">
+      <h2>Where we are on your journey</h2>
+      <ol class="stages" id="stages"></ol>
+      <section class="tip" id="tip" hidden aria-live="polite">
+        <div class="tip-head"><h3 id="tipTitle"></h3><button class="tip-x" id="tipX" aria-label="Close">×</button></div>
+        <ul id="tipList"></ul>
+      </section>
+      <div class="next" id="next"></div>
+    </nav>
+    <div class="chat-area">
+      <header class="head">
+        ${HEAD_FACE_SVG}
+        <div><h1 id="jtitle">Something I noticed</h1><p>Buddy and ${esc(student)}, investigating together</p></div>
+      </header>
+      ${demo ? `<div class="banner">Demo mode: no AI key is set, so the Buddy's replies are canned. Add an Anthropic API key to try the real tutor.</div>` : ""}
+      <div class="toolbar">
+        <label class="row" style="gap:6px"><input type="checkbox" id="spk" ${speak ? "checked" : ""}> Read replies aloud</label>
+        <select id="lang" title="Language for voice"><option value="en-IN">English (India)</option><option value="hi-IN">हिन्दी</option><option value="kn-IN">ಕನ್ನಡ</option></select>
+        <span style="margin-left:auto"></span>
+        <button class="link-pill" id="disc">My discoveries</button>
+        <button class="link-pill" id="stop">I'm done for today</button>
+      </div>
+      <div class="chat" id="chat">${bubbles(view.turns)}</div>
+      <div id="pending"></div>
+      <div class="composer" id="composer">
+        <div class="field">
+          <label class="cam" title="Add a photo of a plant or object" aria-label="Add a photo of a plant or object">${CAM_SVG}<input type="file" id="file" accept="image/*" hidden></label>
+          <textarea id="msg" rows="1" placeholder="Tell Buddy…" aria-label="Type your reply"></textarea>
+          <button class="mic" id="mic" title="Speak" aria-label="Speak your reply">${SMALL_MIC_SVG}</button>
+          <button class="send" id="send" aria-label="Send">${ARROW_SVG}</button>
+        </div>
+        <p class="hint">Buddy asks one question at a time.</p>
+      </div>
     </div>`;
   document.getElementById("lang").value = lang;
   document.getElementById("lang").onchange = e => { lang = e.target.value; localStorage.setItem("buddy_lang", lang); };
@@ -126,12 +483,69 @@ function chat(view, demo) {
   document.getElementById("stop").onclick = async () => update(await api.post(B() + "/stop"));
   const msg = document.getElementById("msg"), send = document.getElementById("send");
   send.onclick = () => sendText(msg.value);
+  msg.oninput = () => { msg.style.height = "auto"; msg.style.height = Math.min(msg.scrollHeight, 140) + "px"; };
   msg.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send.click(); } };
-  setupMic();
+  setupMic(sendText);
   setupPhotos();
+  document.getElementById("chat").addEventListener("click", e => {
+    if (e.target.closest("[data-pick]")) document.getElementById("file").click();
+    if (e.target.closest("[data-who]")) document.getElementById("wbWho").hidden = false;
+    if (e.target.closest("[data-back]")) document.getElementById("wb")?.remove();
+  });
+  wireJourney();
+  paintJourney();
   scrollEnd();
   if (view.closed) closed();
   if (!view.resumed) say(lastTutor(view));
+}
+
+// Where the child is: the newest open inquiry's stage. A brand-new child starts at Observe.
+async function paintJourney() {
+  let idx = 0, title = "";
+  try {
+    const p = await api.get(B() + "/progress");
+    const inq = (p.inquiries || []).find(i => i.status !== "done");
+    if (inq) { title = inq.title || ""; if (inq.stage in STAGE_INDEX) idx = STAGE_INDEX[inq.stage]; }
+  } catch (e) { /* journey is decoration: keep the default if progress can't be read */ }
+  const stages = document.getElementById("stages");
+  if (!stages) return;
+  stages.innerHTML = STAGE_INFO.map((s, i) => {
+    const cls = i < idx ? "done" : i === idx ? "now" : "future";
+    return `<li class="stage ${cls}"${i === idx ? ' aria-current="step"' : ""}><button class="stage-btn" aria-expanded="false">
+      <span class="node"></span><span class="stage-name">${esc(s.name)}</span><span class="stage-hint">${esc(s.head)}</span></button></li>`;
+  }).join("");
+  const next = STAGE_INFO[idx + 1];
+  document.getElementById("next").innerHTML = next
+    ? `<strong>Next: ${esc(next.name)}</strong>${esc(next.head)}.`
+    : `<strong>Keep going</strong>Share what you found with Buddy.`;
+  if (title) document.getElementById("jtitle").textContent = title;
+}
+
+let openTip = -1, tipPinned = false;
+function showTip(i) {
+  openTip = i;
+  document.getElementById("tipTitle").textContent = STAGE_INFO[i].name + " – " + STAGE_INFO[i].head;
+  document.getElementById("tipList").innerHTML = STAGE_INFO[i].items.map(t => `<li>${esc(t)}</li>`).join("");
+  document.getElementById("tip").hidden = false;
+  document.querySelectorAll(".stage-btn").forEach((b, j) => b.setAttribute("aria-expanded", j === i ? "true" : "false"));
+}
+function hideTip() {
+  openTip = -1; tipPinned = false;
+  const t = document.getElementById("tip"); if (t) t.hidden = true;
+  document.querySelectorAll(".stage-btn").forEach(b => b.setAttribute("aria-expanded", "false"));
+}
+function stageIndexOf(el) { const btn = el.closest(".stage-btn"); return btn ? [...document.querySelectorAll(".stage-btn")].indexOf(btn) : -1; }
+function wireJourney() {
+  const nav = document.querySelector(".journey");
+  nav.addEventListener("click", e => {
+    const i = stageIndexOf(e.target);
+    if (i < 0) return;
+    if (openTip === i && tipPinned) return hideTip();
+    tipPinned = true; showTip(i);
+  });
+  nav.addEventListener("mouseover", e => { const i = stageIndexOf(e.target); if (i >= 0 && !tipPinned) showTip(i); });
+  nav.addEventListener("mouseleave", () => { if (!tipPinned) hideTip(); });
+  document.getElementById("tipX").onclick = hideTip;
 }
 
 function lastTutor(v) { const t = [...v.turns].reverse().find(t => t.role === "tutor"); return t ? t.text : ""; }
@@ -144,14 +558,20 @@ async function sendText(text) {
   const image = pendingPhoto;
   const c = document.getElementById("chat");
   c.insertAdjacentHTML("beforeend", `<div class="bubble learner">${image ? `<img src="${image}">` : ""}${esc(text)}</div>
-    <div class="bubble tutor thinking" id="th">${image ? "Checking your photo…" : "…"}</div>`);
-  document.getElementById("msg").value = ""; setPending(null); scrollEnd();
+    <div class="bubble tutor thinking" id="th">${image ? "Checking your photo…" : `<span class="dots" aria-label="Buddy is thinking"><span></span><span></span><span></span></span>`}</div>`);
+  const box = document.getElementById("msg"); if (box) { box.value = ""; box.style.height = "auto"; }
+  setPending(null); scrollEnd();
   document.getElementById("send").disabled = true;
   try { update(await api.post(B() + "/message", image ? { text, image } : { text })); }
   catch (e) {
     if (String(e.message).includes("consent for photos")) {
       document.getElementById("th")?.remove(); c.lastElementChild?.remove();
       photoConsent(() => { setPending(image); document.getElementById("msg").value = text; });
+    } else if (e instanceof TypeError || !navigator.onLine) {
+      // No connection: keep the message and send it when the phone is back online.
+      outbox.push({ text, image });
+      const th = document.getElementById("th"); if (th) th.textContent = "Waiting to send…";
+      showOffline(true);
     } else { document.getElementById("th").textContent = "Something went wrong sending that. Please try again."; }
   }
   finally { const s = document.getElementById("send"); if (s) s.disabled = false; }
@@ -161,8 +581,8 @@ async function sendText(text) {
 function setPending(dataUrl) {
   pendingPhoto = dataUrl;
   const box = document.getElementById("pending"); if (!box) return;
-  box.innerHTML = dataUrl ? `<div class="pending"><img src="${dataUrl}"><span>Photo ready — say what you notice in it, then Send.</span>
-    <button class="link" id="unp">✕ Remove</button></div>` : "";
+  box.innerHTML = dataUrl ? `<div class="pending-card"><img src="${dataUrl}"><span>Photo ready. Tell Buddy what you see in it, then send.</span>
+    <button class="link-pill" id="unp">Remove photo</button></div>` : "";
   if (dataUrl) document.getElementById("unp").onclick = () => setPending(null);
 }
 
@@ -202,7 +622,7 @@ function setupPhotos() {
 function photoConsent(done) {
   const m = document.createElement("div");
   m.className = "modal";
-  m.innerHTML = `<div class="panel"><h3 style="margin-top:0">Ask a parent or guardian 📷</h3>
+  m.innerHTML = `<div class="panel"><h3 style="margin-top:0;font-weight:500">Ask a parent or guardian 📷</h3>
     <p class="small">${esc(student)} wants to send photos of plants and objects to the Science Buddy. Every photo is checked first: photos showing people, animals or personal details are refused and never saved. Location data is removed from every photo. Saved photos can be seen by ${esc(student)}'s teacher.</p>
     <label class="f">Parent or guardian's name</label><input type="text" id="cpn">
     <label class="row" style="margin-top:10px;gap:8px;align-items:flex-start;flex-wrap:nowrap"><input type="checkbox" id="cag" style="margin-top:4px"><span>I agree to photos of plants and objects being saved.</span></label>
@@ -224,38 +644,132 @@ function update(view) {
 }
 
 function closed() {
-  document.getElementById("composer").innerHTML = `<div class="panel" style="width:100%">See you next time! 👋 Go and investigate — then come back and tell me what you found.
-    <div class="actions"><button class="primary" id="again">Start a new chat</button><a href="/" style="margin-left:8px">Back to subjects</a></div></div>`;
-  document.getElementById("again").onclick = async () => chat(await api.post(B() + "/start"), false);
+  document.getElementById("composer").innerHTML = `<div class="end">
+    <svg class="arc" viewBox="0 0 140 80" aria-hidden="true">
+      <path d="M6 74 A64 64 0 0 1 134 74" stroke="#C9D9EE" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M14 74 A56 56 0 0 1 126 74" stroke="#E3D5EC" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M22 74 A48 48 0 0 1 118 74" stroke="#F3D2C2" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M30 74 A40 40 0 0 1 110 74" stroke="var(--face)" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M38 74 A32 32 0 0 1 102 74" stroke="var(--leaf)" stroke-width="6" stroke-linecap="round" fill="none"/>
+    </svg>
+    <h2>See you next time!</h2>
+    <p>Go and check your plant. Then come back and tell me what you found.</p>
+    <div class="btns" style="justify-content:center"><button class="btn primary" id="again">Start a new investigation</button>
+      <a class="btn" href="/">Back to subjects</a></div></div>`;
+  document.getElementById("again").onclick = homeNew;
 }
 
+// A fresh session, shown on the home screen.
+async function homeNew() {
+  startView = await api.post(B() + "/start");
+  home();
+}
+
+// Messages that couldn't be sent while offline go again once the phone reconnects.
+let outbox = [];
+function showOffline(on) {
+  let b = document.getElementById("offline");
+  if (on && !b) {
+    b = document.createElement("div"); b.id = "offline"; b.className = "offline";
+    b.textContent = "You're offline. Your reply is saved and will send when you're back online.";
+    const chat = document.getElementById("chat"); if (chat) chat.parentNode.insertBefore(b, chat);
+  }
+  if (!on && b) b.remove();
+}
+window.addEventListener("online", async () => {
+  const items = outbox; outbox = [];
+  for (const it of items) {
+    try { update(await api.post(B() + "/message", it.image ? { text: it.text, image: it.image } : { text: it.text })); }
+    catch (e) { outbox.push(it); return; }
+  }
+  if (!outbox.length) showOffline(false);
+});
+
+const LEAF_SVG = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 19c0-8 6-13 14-14-1 8-6 14-14 14z"/></svg>`;
+function discCard(title, sub) {
+  return `<div class="disc-card"><div class="disc-thumb">${LEAF_SVG}</div><div><b>${esc(title)}</b><span>${esc(sub)}</span></div></div>`;
+}
+
+// My discoveries: the child's own investigations and new skills, as a screen of cards.
 async function discoveries() {
   const p = await api.get(B() + "/progress");
-  const box = document.createElement("div");
-  box.className = "panel"; box.style.marginBottom = "14px";
-  box.innerHTML = `<div class="row"><h3 style="margin:0">⭐ My discoveries</h3><span style="margin-left:auto"></span><button class="link" id="x">Close</button></div>
-    ${p.achievements.length ? `<p class="small muted">Things you can do now:</p><ul class="disc">${p.achievements.map(a => `<li>${esc(a.text)}</li>`).join("")}</ul>` : `<p class="muted small">Keep investigating — your new skills will show up here.</p>`}
-    ${p.inquiries.length ? `<p class="small muted">My investigations:</p><ul class="disc">${p.inquiries.map(i => `<li><b>${esc(i.title || "An investigation")}</b>${i.question ? ` — ${esc(i.question)}` : ""}${i.task && i.status !== "done" ? `<br><span class="small">To do: ${esc(i.task)}</span>` : ""}${i.status === "done" ? " ✓" : ""}</li>`).join("")}</ul>` : ""}`;
-  app.prepend(box);
-  box.querySelector("#x").onclick = () => box.remove();
+  app.className = "";
+  app.innerHTML = `<section class="plain">
+    <div class="screen-top"><h2>My discoveries</h2><button class="back-pill" id="back">Back</button></div>
+    ${p.inquiries.length ? p.inquiries.map(i => discCard(i.title || "An investigation",
+        [i.question, i.task && i.status !== "done" ? "To do: " + i.task : "", i.status === "done" ? "Done ✓" : ""].filter(Boolean).join(" · "))).join("") : ""}
+    ${p.achievements.length ? `<p class="muted-note">Things I can do now</p>${p.achievements.map(a => discCard(a.text, "")).join("")}` : ""}
+    ${!p.inquiries.length && !p.achievements.length ? `<p class="muted-note">Keep investigating — your discoveries will show up here.</p>` : ""}
+    <p class="muted-note" style="margin-top:8px">Only your own words and photos appear here.</p>
+  </section>`;
+  document.getElementById("back").onclick = boot;
+}
+
+// Settings: name, reading aloud, larger text, sign out.
+function settingsScreen() {
+  app.className = "";
+  const large = document.body.classList.contains("large");
+  app.innerHTML = `<section class="plain">
+    <div class="screen-top"><h2>Settings</h2><button class="back-pill" id="back">Done</button></div>
+    <div class="switch-row"><div>Name<small>${esc(student)}</small></div><button class="btn" id="rename">Change</button></div>
+    <div class="switch-row"><div>Read replies aloud<small>Buddy speaks each reply</small></div>
+      <button class="switch" id="spk" role="switch" aria-checked="${speak}" aria-label="Read replies aloud"></button></div>
+    <div class="switch-row"><div>Larger text<small>Easier to read</small></div>
+      <button class="switch" id="big" role="switch" aria-checked="${large}" aria-label="Larger text"></button></div>
+    <div class="btns" style="margin-top:12px"><button class="btn" id="out">Sign out</button></div>
+  </section>`;
+  document.getElementById("back").onclick = boot;
+  document.getElementById("rename").onclick = askName;
+  document.getElementById("spk").onclick = e => {
+    speak = !speak; localStorage.setItem("buddy_speak", speak ? "1" : "0");
+    e.currentTarget.setAttribute("aria-checked", String(speak));
+  };
+  document.getElementById("big").onclick = e => {
+    const on = !document.body.classList.contains("large");
+    document.body.classList.toggle("large", on); localStorage.setItem("buddy_large", on ? "1" : "0");
+    e.currentTarget.setAttribute("aria-checked", String(on));
+  };
+  document.getElementById("out").onclick = () => {
+    student = ""; localStorage.removeItem("tutor_student");
+    document.getElementById("who").textContent = ""; askName();
+  };
 }
 
 // ---------------- voice: speech-to-text and text-to-speech (browser built-in; best in Chrome)
-function setupMic() {
+function setupMic(send = sendText) {
   const mic = document.getElementById("mic");
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { mic.title = "Voice input isn't supported in this browser (try Chrome)"; mic.disabled = true; return; }
-  let rec = null;
+  let rec = null, typing = false;
   mic.onclick = () => {
     if (rec) { rec.stop(); return; }
-    rec = new SR(); rec.lang = lang; rec.interimResults = true;
+    rec = new SR(); rec.lang = lang; rec.interimResults = true; typing = false;
     const box = document.getElementById("msg"); const before = box.value;
     rec.onresult = e => { box.value = (before + " " + [...e.results].map(r => r[0].transcript).join("")).trim(); };
-    rec.onend = () => { mic.classList.remove("on"); rec = null; if (box.value.trim() && box.value !== before) sendText(box.value); };
-    rec.onerror = () => { mic.classList.remove("on"); rec = null; };
-    mic.classList.add("on"); rec.start();
+    rec.onend = () => {
+      mic.classList.remove("on"); rec = null; hideListening();
+      // "Type instead" keeps the words in the box for the child to edit; otherwise they are sent.
+      if (!typing && box.value.trim() && box.value !== before) send(box.value);
+    };
+    rec.onerror = () => { mic.classList.remove("on"); rec = null; hideListening(); };
+    mic.classList.add("on");
+    showListening(() => mic.click(), () => { typing = true; mic.click(); box.focus(); });
+    rec.start();
   };
 }
+
+function showListening(onDone, onType) {
+  hideListening();
+  const el = document.createElement("div");
+  el.className = "listen"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Listening");
+  el.innerHTML = `<div class="mic-live" aria-hidden="true">${MIC_SVG}</div>
+    <h3>I'm listening…</h3><p>Take your time. Tap when you're done.</p>
+    <div class="btns" style="justify-content:center"><button class="btn primary" id="ldone">I'm done</button><button class="btn" id="ltype">Type instead</button></div>`;
+  document.body.appendChild(el);
+  el.querySelector("#ldone").onclick = onDone;
+  el.querySelector("#ltype").onclick = onType;
+}
+function hideListening() { document.querySelector(".listen")?.remove(); }
 
 function say(text) {
   if (!speak || !text || !window.speechSynthesis) return;
@@ -268,6 +782,8 @@ function say(text) {
   speechSynthesis.speak(u);
 }
 
+document.body.classList.toggle("large", localStorage.getItem("buddy_large") === "1");
+document.getElementById("gear").onclick = settingsScreen;
 boot();
 </script>
 </body>
