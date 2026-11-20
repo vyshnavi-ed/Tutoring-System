@@ -1,0 +1,434 @@
+{
+  "id": "ds_linked_lists",
+  "title": "Linked Lists — UOS1.2 (from the thesis)",
+  "subject": "Data Structures (B.Tech)",
+  "strategy": "level_descent",
+  "status": "approved",
+  "description": "The original tutoring rules from Ramesh (2014): fail an Apply item → Understand items pre-selected for it → Remember items → back up with a different item.",
+  "config": {
+    "alert_after_failures": 3,
+    "reveal_answer_on_fail": false
+  },
+  "activities": {
+    "IA1.2.Ap": {
+      "title": "IA1.2.Ap — Inserting nodes into a singly-linked list (Apply)",
+      "body": "Each node has `data` and `next`. The list is reached through `head`.\n\n**At the beginning:** `new = Node(data, head)` → the new node *is* the new head.\n\n**At the end:** walk until `cur.next is None`, then `cur.next = Node(data)`. If the list is empty, the new node is the head.\n\n**At position p (1-based):** walk to the node *before* p (p − 2 steps from head), then\n```\nnew = Node(data, cur.next)\ncur.next = new\n```\nPosition 1 is the same as inserting at the beginning."
+    },
+    "IA1.2.U": {
+      "title": "IA1.2.U — What changes when you insert (Understand)",
+      "body": "Compare the three insertions on 1 → 2 → 3:\n\n- **End (insert 4):** 1 → 2 → 3 → 4. Node 3's `next` changes from None to 4; node 4's `next` is None.\n- **Beginning (insert 0):** 0 → 1 → 2 → 3. Node 0's `next` is the old head (1); `head` now refers to 0.\n- **Position 2 (insert 4):** 1 → 4 → 2 → 3. Node 1's `next` becomes 4; node 4's `next` is 2.\n- **Empty list (insert 3):** head → 3, and node 3's `next` is None."
+    },
+    "IA1.2.R": {
+      "title": "IA1.2.R — Structure of a singly-linked node (Remember)",
+      "body": "Memorise these facts:\n\n- A singly-linked node has **data** and **one link: `next`**.\n- It has **no `prev` link** (that's a doubly-linked list).\n- `next` refers to the **following node**.\n- The **last node's `next` is None (NULL)**. That's how you know the list has ended."
+    }
+  },
+  "item_sets": {
+    "A1.2.Ap.1": {
+      "title": "Insert a node at the end of a singly-linked list",
+      "level": "Apply",
+      "activity": "IA1.2.Ap",
+      "links": [
+        "A1.2.U.1",
+        "A1.2.U.2",
+        "A1.2.U.3",
+        "A1.2.U.4"
+      ],
+      "items": [
+        {
+          "id": "Ap1.a",
+          "type": "code_python",
+          "prompt": "Write `insert_at_end(head, data)` that adds a node with `data` at the end of the list and returns the head. Example: 1 → 2 → 3, insert 4 → 1 → 2 → 3 → 4.\n\nA `Node` class (`data`, `next`) and helpers `from_list([...])` / `to_list(head)` are already defined.",
+          "preamble": "class Node:\n    def __init__(self, data, next=None):\n        self.data = data\n        self.next = next\n\ndef from_list(values):\n    head = None\n    for v in reversed(values):\n        head = Node(v, head)\n    return head\n\ndef to_list(head):\n    out = []\n    while head is not None:\n        out.append(head.data)\n        head = head.next\n    return out\n",
+          "starter": "def insert_at_end(head, data):\n    # your code here\n    pass\n",
+          "tests": [
+            "assert to_list(insert_at_end(from_list([1, 2, 3]), 4)) == [1, 2, 3, 4]",
+            "assert to_list(insert_at_end(None, 7)) == [7]",
+            "assert to_list(insert_at_end(from_list([5]), 9)) == [5, 9]"
+          ],
+          "solution": "def insert_at_end(head, data):\n    new = Node(data)\n    if head is None:\n        return new\n    cur = head\n    while cur.next is not None:\n        cur = cur.next\n    cur.next = new\n    return head\n",
+          "hint": "Walk to the node whose next is None, then attach the new node there. Don't forget the empty list."
+        },
+        {
+          "id": "Ap1.b",
+          "type": "code_python",
+          "prompt": "Write `insert_at_end(head, data)` for a singly-linked list. If the list is empty, the new node becomes the head. Example: 5 → 9, insert 2 → 5 → 9 → 2.\n\nA `Node` class (`data`, `next`) and helpers `from_list([...])` / `to_list(head)` are already defined.",
+          "preamble": "class Node:\n    def __init__(self, data, next=None):\n        self.data = data\n        self.next = next\n\ndef from_list(values):\n    head = None\n    for v in reversed(values):\n        head = Node(v, head)\n    return head\n\ndef to_list(head):\n    out = []\n    while head is not None:\n        out.append(head.data)\n        head = head.next\n    return out\n",
+          "starter": "def insert_at_end(head, data):\n    pass\n",
+          "tests": [
+            "assert to_list(insert_at_end(from_list([1, 2, 3]), 4)) == [1, 2, 3, 4]",
+            "assert to_list(insert_at_end(None, 7)) == [7]",
+            "assert to_list(insert_at_end(from_list([5]), 9)) == [5, 9]"
+          ],
+          "solution": "def insert_at_end(head, data):\n    new = Node(data)\n    if head is None:\n        return new\n    cur = head\n    while cur.next is not None:\n        cur = cur.next\n    cur.next = new\n    return head\n",
+          "hint": "Use a loop: while cur.next is not None: cur = cur.next"
+        }
+      ]
+    },
+    "A1.2.Ap.2": {
+      "title": "Insert a node at the beginning of a (new) singly-linked list",
+      "level": "Apply",
+      "activity": "IA1.2.Ap",
+      "links": [
+        "A1.2.U.1",
+        "A1.2.U.2",
+        "A1.2.U.3",
+        "A1.2.U.4"
+      ],
+      "items": [
+        {
+          "id": "Ap2.a",
+          "type": "code_python",
+          "prompt": "Write `insert_at_beginning(head, data)` that inserts `data` at the front and returns the new head. Example: insert 1 into an empty list → 1.\n\nA `Node` class (`data`, `next`) and helpers `from_list([...])` / `to_list(head)` are already defined.",
+          "preamble": "class Node:\n    def __init__(self, data, next=None):\n        self.data = data\n        self.next = next\n\ndef from_list(values):\n    head = None\n    for v in reversed(values):\n        head = Node(v, head)\n    return head\n\ndef to_list(head):\n    out = []\n    while head is not None:\n        out.append(head.data)\n        head = head.next\n    return out\n",
+          "starter": "def insert_at_beginning(head, data):\n    pass\n",
+          "tests": [
+            "assert to_list(insert_at_beginning(None, 1)) == [1]",
+            "assert to_list(insert_at_beginning(from_list([2, 3]), 1)) == [1, 2, 3]",
+            "h = insert_at_beginning(None, 1); assert h.next is None"
+          ],
+          "solution": "def insert_at_beginning(head, data):\n    return Node(data, head)\n",
+          "hint": "The new node's next should be the old head."
+        },
+        {
+          "id": "Ap2.b",
+          "type": "code_python",
+          "prompt": "Write `insert_at_beginning(head, data)`. Example: 2 → 3, insert 1 → 1 → 2 → 3.\n\nA `Node` class (`data`, `next`) and helpers `from_list([...])` / `to_list(head)` are already defined.",
+          "preamble": "class Node:\n    def __init__(self, data, next=None):\n        self.data = data\n        self.next = next\n\ndef from_list(values):\n    head = None\n    for v in reversed(values):\n        head = Node(v, head)\n    return head\n\ndef to_list(head):\n    out = []\n    while head is not None:\n        out.append(head.data)\n        head = head.next\n    return out\n",
+          "starter": "def insert_at_beginning(head, data):\n    pass\n",
+          "tests": [
+            "assert to_list(insert_at_beginning(None, 1)) == [1]",
+            "assert to_list(insert_at_beginning(from_list([2, 3]), 1)) == [1, 2, 3]",
+            "h = insert_at_beginning(None, 1); assert h.next is None"
+          ],
+          "solution": "def insert_at_beginning(head, data):\n    return Node(data, head)\n",
+          "hint": "Create Node(data) and point it at the current head; return the new node."
+        }
+      ]
+    },
+    "A1.2.Ap.3": {
+      "title": "Insert a node at a given position of a singly-linked list",
+      "level": "Apply",
+      "activity": "IA1.2.Ap",
+      "links": [
+        "A1.2.U.1",
+        "A1.2.U.2",
+        "A1.2.U.3",
+        "A1.2.U.4"
+      ],
+      "items": [
+        {
+          "id": "Ap3.a",
+          "type": "code_python",
+          "prompt": "Write `insert_at_position(head, data, pos)` (positions start at 1) and return the head. Example: insert 4 at position 2 of 1 → 2 → 3 → 1 → 4 → 2 → 3.\n\nA `Node` class (`data`, `next`) and helpers `from_list([...])` / `to_list(head)` are already defined.",
+          "preamble": "class Node:\n    def __init__(self, data, next=None):\n        self.data = data\n        self.next = next\n\ndef from_list(values):\n    head = None\n    for v in reversed(values):\n        head = Node(v, head)\n    return head\n\ndef to_list(head):\n    out = []\n    while head is not None:\n        out.append(head.data)\n        head = head.next\n    return out\n",
+          "starter": "def insert_at_position(head, data, pos):\n    pass\n",
+          "tests": [
+            "assert to_list(insert_at_position(from_list([1, 2, 3]), 4, 2)) == [1, 4, 2, 3]",
+            "assert to_list(insert_at_position(from_list([1, 2, 3]), 0, 1)) == [0, 1, 2, 3]",
+            "assert to_list(insert_at_position(from_list([1, 2]), 3, 3)) == [1, 2, 3]",
+            "assert to_list(insert_at_position(None, 5, 1)) == [5]"
+          ],
+          "solution": "def insert_at_position(head, data, pos):\n    if pos == 1 or head is None:\n        return Node(data, head)\n    cur = head\n    for _ in range(pos - 2):\n        if cur.next is None:\n            break\n        cur = cur.next\n    cur.next = Node(data, cur.next)\n    return head\n",
+          "hint": "Stop at the node *before* the position, then link: new.next = cur.next; cur.next = new. Position 1 is a special case."
+        },
+        {
+          "id": "Ap3.b",
+          "type": "code_python",
+          "prompt": "Write `insert_at_position(head, data, pos)`; position 1 means the new node becomes the head. Example: insert 0 at position 1 of 1 → 2 → 3 → 0 → 1 → 2 → 3.\n\nA `Node` class (`data`, `next`) and helpers `from_list([...])` / `to_list(head)` are already defined.",
+          "preamble": "class Node:\n    def __init__(self, data, next=None):\n        self.data = data\n        self.next = next\n\ndef from_list(values):\n    head = None\n    for v in reversed(values):\n        head = Node(v, head)\n    return head\n\ndef to_list(head):\n    out = []\n    while head is not None:\n        out.append(head.data)\n        head = head.next\n    return out\n",
+          "starter": "def insert_at_position(head, data, pos):\n    pass\n",
+          "tests": [
+            "assert to_list(insert_at_position(from_list([1, 2, 3]), 4, 2)) == [1, 4, 2, 3]",
+            "assert to_list(insert_at_position(from_list([1, 2, 3]), 0, 1)) == [0, 1, 2, 3]",
+            "assert to_list(insert_at_position(from_list([1, 2]), 3, 3)) == [1, 2, 3]",
+            "assert to_list(insert_at_position(None, 5, 1)) == [5]"
+          ],
+          "solution": "def insert_at_position(head, data, pos):\n    if pos == 1 or head is None:\n        return Node(data, head)\n    cur = head\n    for _ in range(pos - 2):\n        if cur.next is None:\n            break\n        cur = cur.next\n    cur.next = Node(data, cur.next)\n    return head\n",
+          "hint": "Move pos − 2 steps from the head to reach the node before the insertion point."
+        }
+      ]
+    },
+    "A1.2.U.1": {
+      "title": "Result of inserting at the end",
+      "level": "Understand",
+      "activity": "IA1.2.U",
+      "links": [
+        "A1.2.R.1",
+        "A1.2.R.2",
+        "A1.2.R.3",
+        "A1.2.R.4"
+      ],
+      "items": [
+        {
+          "id": "U1.a",
+          "type": "mcq",
+          "prompt": "What will the list 1 → 2 → 3 look like after inserting the node 4 at the end?",
+          "options": [
+            "1 → 2 → 3 → 4",
+            "4 → 1 → 2 → 3",
+            "1 → 2 → 3",
+            "1 → 2 → 4 → 3"
+          ],
+          "answer": "1 → 2 → 3 → 4"
+        },
+        {
+          "id": "U1.b",
+          "type": "mcq",
+          "prompt": "The list is 7 → 8. After inserting 9 at the end, the list is:",
+          "options": [
+            "7 → 8 → 9",
+            "9 → 7 → 8",
+            "7 → 9 → 8",
+            "7 → 8"
+          ],
+          "answer": "7 → 8 → 9"
+        }
+      ]
+    },
+    "A1.2.U.2": {
+      "title": "What the new last node points to",
+      "level": "Understand",
+      "activity": "IA1.2.U",
+      "links": [
+        "A1.2.R.1",
+        "A1.2.R.2",
+        "A1.2.R.3",
+        "A1.2.R.4"
+      ],
+      "items": [
+        {
+          "id": "U2.a",
+          "type": "mcq",
+          "prompt": "After inserting a node at the end of 1 → 2 → 3, what does the new node point to?",
+          "options": [
+            "None (NULL)",
+            "The head (node 1)",
+            "Node 3",
+            "Itself"
+          ],
+          "answer": "None (NULL)"
+        },
+        {
+          "id": "U2.b",
+          "type": "mcq",
+          "prompt": "After inserting at the end, which node's `next` changes from None to the new node?",
+          "options": [
+            "The old last node",
+            "The head",
+            "The new node",
+            "No node changes"
+          ],
+          "answer": "The old last node"
+        }
+      ]
+    },
+    "A1.2.U.3": {
+      "title": "Inserting at a position (not the end)",
+      "level": "Understand",
+      "activity": "IA1.2.U",
+      "links": [
+        "A1.2.R.1",
+        "A1.2.R.2",
+        "A1.2.R.3",
+        "A1.2.R.4"
+      ],
+      "items": [
+        {
+          "id": "U3.a",
+          "type": "mcq",
+          "prompt": "After inserting 4 at the 2nd position of 1 → 2 → 3, what does the new node point to?",
+          "options": [
+            "Node 2",
+            "Node 1",
+            "None (NULL)",
+            "Node 3"
+          ],
+          "answer": "Node 2"
+        },
+        {
+          "id": "U3.b",
+          "type": "mcq",
+          "prompt": "After inserting 4 at the 2nd position of 1 → 2 → 3, what does node 1 point to?",
+          "options": [
+            "The new node (4)",
+            "Node 2",
+            "None (NULL)",
+            "Node 3"
+          ],
+          "answer": "The new node (4)"
+        }
+      ]
+    },
+    "A1.2.U.4": {
+      "title": "Inserting into an empty list",
+      "level": "Understand",
+      "activity": "IA1.2.U",
+      "links": [
+        "A1.2.R.1",
+        "A1.2.R.2",
+        "A1.2.R.3",
+        "A1.2.R.4"
+      ],
+      "items": [
+        {
+          "id": "U4.a",
+          "type": "mcq",
+          "prompt": "After inserting a node containing 3 into an empty singly-linked list, what does the new node point to?",
+          "options": [
+            "None (NULL)",
+            "Itself",
+            "The head",
+            "Node 3"
+          ],
+          "answer": "None (NULL)"
+        },
+        {
+          "id": "U4.b",
+          "type": "mcq",
+          "prompt": "After inserting the first node into an empty list, what is the head?",
+          "options": [
+            "The new node",
+            "None (NULL)",
+            "Undefined",
+            "A dummy node"
+          ],
+          "answer": "The new node"
+        }
+      ]
+    },
+    "A1.2.R.1": {
+      "title": "Number of links in a singly-linked node",
+      "level": "Remember",
+      "activity": "IA1.2.R",
+      "links": [],
+      "items": [
+        {
+          "id": "R1.a",
+          "type": "mcq",
+          "prompt": "How many links (pointers to other nodes) does each node of a singly-linked list have?",
+          "options": [
+            "1",
+            "2",
+            "0",
+            "3"
+          ],
+          "answer": "1"
+        },
+        {
+          "id": "R1.b",
+          "type": "mcq",
+          "prompt": "A singly-linked list node stores data and how many references to other nodes?",
+          "options": [
+            "One",
+            "Two",
+            "None",
+            "As many as needed"
+          ],
+          "answer": "One"
+        }
+      ]
+    },
+    "A1.2.R.2": {
+      "title": "Prev link in a singly-linked list",
+      "level": "Remember",
+      "activity": "IA1.2.R",
+      "links": [],
+      "items": [
+        {
+          "id": "R2.a",
+          "type": "mcq",
+          "prompt": "Does a node of a singly-linked list have a `prev` link?",
+          "options": [
+            "No",
+            "Yes"
+          ],
+          "answer": "No"
+        },
+        {
+          "id": "R2.b",
+          "type": "mcq",
+          "prompt": "Which kind of linked list has a `prev` link in every node?",
+          "options": [
+            "Doubly-linked",
+            "Singly-linked",
+            "Neither"
+          ],
+          "answer": "Doubly-linked"
+        }
+      ]
+    },
+    "A1.2.R.3": {
+      "title": "Next link in a singly-linked list",
+      "level": "Remember",
+      "activity": "IA1.2.R",
+      "links": [],
+      "items": [
+        {
+          "id": "R3.a",
+          "type": "mcq",
+          "prompt": "Does a node of a singly-linked list have a `next` link?",
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "answer": "Yes"
+        },
+        {
+          "id": "R3.b",
+          "type": "mcq",
+          "prompt": "In a singly-linked list, the `next` field of a node refers to:",
+          "options": [
+            "The following node",
+            "The previous node",
+            "The head",
+            "The data"
+          ],
+          "answer": "The following node"
+        }
+      ]
+    },
+    "A1.2.R.4": {
+      "title": "The NULL / None link",
+      "level": "Remember",
+      "activity": "IA1.2.R",
+      "links": [],
+      "items": [
+        {
+          "id": "R4.a",
+          "type": "mcq",
+          "prompt": "In a singly-linked list, which node's `next` is None (NULL)?",
+          "options": [
+            "The last node",
+            "The head",
+            "Every node",
+            "No node"
+          ],
+          "answer": "The last node"
+        },
+        {
+          "id": "R4.b",
+          "type": "mcq",
+          "prompt": "Does a (non-circular) singly-linked list have a node that points to None (NULL)?",
+          "options": [
+            "Yes",
+            "No"
+          ],
+          "answer": "Yes"
+        }
+      ]
+    }
+  },
+  "units": [
+    {
+      "id": "UOS1.2",
+      "title": "Construct and traverse singly-linked lists",
+      "activity": "IA1.2.Ap",
+      "sets": [
+        "A1.2.Ap.1",
+        "A1.2.Ap.2",
+        "A1.2.Ap.3"
+      ]
+    }
+  ]
+}

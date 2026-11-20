@@ -1,0 +1,7 @@
+fastapi>=0.110
+uvicorn>=0.29
+# optional: AI grading of free-text answers and AI-assisted pack authoring
+anthropic>=0.40
+# tests
+pytest
+httpx

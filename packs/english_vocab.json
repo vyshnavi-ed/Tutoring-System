@@ -1,0 +1,706 @@
+{
+  "id": "english_vocab",
+  "title": "English Vocabulary — Set 1",
+  "subject": "English (Class 6–7)",
+  "strategy": "spaced_repetition",
+  "status": "approved",
+  "description": "Each word climbs boxes: recognise the meaning → pick it in a sentence → type it → use it yourself. Missed words come back soon; known words come back days later.",
+  "config": {
+    "box_intervals_days": [
+      0,
+      1,
+      3,
+      7,
+      14,
+      30
+    ],
+    "new_per_session": 5,
+    "relearn_gap": 3,
+    "alert_after_failures": 3,
+    "reveal_answer_on_fail": true
+  },
+  "activities": {
+    "CARD_ABUNDANT": {
+      "title": "abundant",
+      "body": "**abundant** *(adjective)*\n\n**Meaning:** existing in large amounts; more than enough\n\n**Example:** Mangoes are abundant in summer.\n\n**हिंदी:** प्रचुर, भरपूर"
+    },
+    "CARD_FRAGILE": {
+      "title": "fragile",
+      "body": "**fragile** *(adjective)*\n\n**Meaning:** easily broken or damaged\n\n**Example:** Handle the glass bangles carefully — they are fragile.\n\n**हिंदी:** नाज़ुक"
+    },
+    "CARD_RELUCTANT": {
+      "title": "reluctant",
+      "body": "**reluctant** *(adjective)*\n\n**Meaning:** unwilling and slow to do something\n\n**Example:** Meena was reluctant to jump into the cold river.\n\n**हिंदी:** अनिच्छुक"
+    },
+    "CARD_CURIOUS": {
+      "title": "curious",
+      "body": "**curious** *(adjective)*\n\n**Meaning:** wanting to know or learn about something\n\n**Example:** The curious child asked how rainbows form.\n\n**हिंदी:** जिज्ञासु"
+    },
+    "CARD_GENEROUS": {
+      "title": "generous",
+      "body": "**generous** *(adjective)*\n\n**Meaning:** happy to give more money, time or help than expected\n\n**Example:** Our generous neighbour shared sweets with the whole street.\n\n**हिंदी:** उदार"
+    },
+    "CARD_ANCIENT": {
+      "title": "ancient",
+      "body": "**ancient** *(adjective)*\n\n**Meaning:** very old; from a long time ago\n\n**Example:** Hampi has many ancient temples.\n\n**हिंदी:** प्राचीन"
+    },
+    "CARD_BRIEF": {
+      "title": "brief",
+      "body": "**brief** *(adjective)*\n\n**Meaning:** lasting only a short time; short\n\n**Example:** The principal gave a brief speech.\n\n**हिंदी:** संक्षिप्त"
+    },
+    "CARD_ENORMOUS": {
+      "title": "enormous",
+      "body": "**enormous** *(adjective)*\n\n**Meaning:** extremely large\n\n**Example:** An elephant is an enormous animal.\n\n**हिंदी:** विशाल"
+    },
+    "CARD_RAPID": {
+      "title": "rapid",
+      "body": "**rapid** *(adjective)*\n\n**Meaning:** happening very quickly; fast\n\n**Example:** The town saw rapid growth after the new railway line.\n\n**हिंदी:** तीव्र, तेज़"
+    },
+    "CARD_VIVID": {
+      "title": "vivid",
+      "body": "**vivid** *(adjective)*\n\n**Meaning:** very bright, clear or detailed\n\n**Example:** She described her dream in vivid detail.\n\n**हिंदी:** सजीव, चटकीला"
+    },
+    "CARD_HUMBLE": {
+      "title": "humble",
+      "body": "**humble** *(adjective)*\n\n**Meaning:** not proud; not thinking you are better than others\n\n**Example:** Despite winning, the champion stayed humble.\n\n**हिंदी:** विनम्र"
+    },
+    "CARD_GLOOMY": {
+      "title": "gloomy",
+      "body": "**gloomy** *(adjective)*\n\n**Meaning:** dark or sad; without hope\n\n**Example:** The sky was gloomy before the storm.\n\n**हिंदी:** उदास, अंधकारमय"
+    }
+  },
+  "item_sets": {
+    "W_ABUNDANT": {
+      "title": "abundant",
+      "level": "vocabulary",
+      "activity": "CARD_ABUNDANT",
+      "links": [],
+      "items": [
+        {
+          "id": "W_ABUNDANT.recognise",
+          "type": "mcq",
+          "prompt": "What does **abundant** mean?",
+          "options": [
+            "wanting to know or learn about something",
+            "extremely large",
+            "existing in large amounts; more than enough",
+            "lasting only a short time; short"
+          ],
+          "answer": "existing in large amounts; more than enough"
+        },
+        {
+          "id": "W_ABUNDANT.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: After the rains, water was ___ in the village well.",
+          "options": [
+            "abundant",
+            "fragile",
+            "brief",
+            "humble"
+          ],
+          "answer": "abundant"
+        },
+        {
+          "id": "W_ABUNDANT.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *existing in large amounts; more than enough* (starts with “a”)",
+          "answer": "abundant",
+          "accepted": [
+            "abundant"
+          ]
+        },
+        {
+          "id": "W_ABUNDANT.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **abundant**.",
+          "rubric": "The sentence must use 'abundant' (or a form of it) correctly, with the meaning 'existing in large amounts; more than enough', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "abunda"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_FRAGILE": {
+      "title": "fragile",
+      "level": "vocabulary",
+      "activity": "CARD_FRAGILE",
+      "links": [],
+      "items": [
+        {
+          "id": "W_FRAGILE.recognise",
+          "type": "mcq",
+          "prompt": "What does **fragile** mean?",
+          "options": [
+            "unwilling and slow to do something",
+            "easily broken or damaged",
+            "extremely large",
+            "dark or sad; without hope"
+          ],
+          "answer": "easily broken or damaged"
+        },
+        {
+          "id": "W_FRAGILE.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The old clay pot was so ___ that it cracked when touched.",
+          "options": [
+            "fragile",
+            "abundant",
+            "reluctant",
+            "humble"
+          ],
+          "answer": "fragile"
+        },
+        {
+          "id": "W_FRAGILE.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *easily broken or damaged* (starts with “f”)",
+          "answer": "fragile",
+          "accepted": [
+            "fragile"
+          ]
+        },
+        {
+          "id": "W_FRAGILE.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **fragile**.",
+          "rubric": "The sentence must use 'fragile' (or a form of it) correctly, with the meaning 'easily broken or damaged', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "fragi"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_RELUCTANT": {
+      "title": "reluctant",
+      "level": "vocabulary",
+      "activity": "CARD_RELUCTANT",
+      "links": [],
+      "items": [
+        {
+          "id": "W_RELUCTANT.recognise",
+          "type": "mcq",
+          "prompt": "What does **reluctant** mean?",
+          "options": [
+            "dark or sad; without hope",
+            "extremely large",
+            "unwilling and slow to do something",
+            "not proud; not thinking you are better than others"
+          ],
+          "answer": "unwilling and slow to do something"
+        },
+        {
+          "id": "W_RELUCTANT.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: He was ___ to lend his new bicycle to anyone.",
+          "options": [
+            "curious",
+            "ancient",
+            "vivid",
+            "reluctant"
+          ],
+          "answer": "reluctant"
+        },
+        {
+          "id": "W_RELUCTANT.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *unwilling and slow to do something* (starts with “r”)",
+          "answer": "reluctant",
+          "accepted": [
+            "reluctant"
+          ]
+        },
+        {
+          "id": "W_RELUCTANT.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **reluctant**.",
+          "rubric": "The sentence must use 'reluctant' (or a form of it) correctly, with the meaning 'unwilling and slow to do something', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "relucta"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_CURIOUS": {
+      "title": "curious",
+      "level": "vocabulary",
+      "activity": "CARD_CURIOUS",
+      "links": [],
+      "items": [
+        {
+          "id": "W_CURIOUS.recognise",
+          "type": "mcq",
+          "prompt": "What does **curious** mean?",
+          "options": [
+            "wanting to know or learn about something",
+            "very bright, clear or detailed",
+            "not proud; not thinking you are better than others",
+            "very old; from a long time ago"
+          ],
+          "answer": "wanting to know or learn about something"
+        },
+        {
+          "id": "W_CURIOUS.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The ___ cat kept sniffing the new box.",
+          "options": [
+            "fragile",
+            "curious",
+            "vivid",
+            "brief"
+          ],
+          "answer": "curious"
+        },
+        {
+          "id": "W_CURIOUS.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *wanting to know or learn about something* (starts with “c”)",
+          "answer": "curious",
+          "accepted": [
+            "curious"
+          ]
+        },
+        {
+          "id": "W_CURIOUS.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **curious**.",
+          "rubric": "The sentence must use 'curious' (or a form of it) correctly, with the meaning 'wanting to know or learn about something', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "curio"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_GENEROUS": {
+      "title": "generous",
+      "level": "vocabulary",
+      "activity": "CARD_GENEROUS",
+      "links": [],
+      "items": [
+        {
+          "id": "W_GENEROUS.recognise",
+          "type": "mcq",
+          "prompt": "What does **generous** mean?",
+          "options": [
+            "not proud; not thinking you are better than others",
+            "happening very quickly; fast",
+            "wanting to know or learn about something",
+            "happy to give more money, time or help than expected"
+          ],
+          "answer": "happy to give more money, time or help than expected"
+        },
+        {
+          "id": "W_GENEROUS.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: It was ___ of her to give her lunch to the new student.",
+          "options": [
+            "rapid",
+            "generous",
+            "humble",
+            "brief"
+          ],
+          "answer": "generous"
+        },
+        {
+          "id": "W_GENEROUS.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *happy to give more money, time or help than expected* (starts with “g”)",
+          "answer": "generous",
+          "accepted": [
+            "generous"
+          ]
+        },
+        {
+          "id": "W_GENEROUS.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **generous**.",
+          "rubric": "The sentence must use 'generous' (or a form of it) correctly, with the meaning 'happy to give more money, time or help than expected', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "genero"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_ANCIENT": {
+      "title": "ancient",
+      "level": "vocabulary",
+      "activity": "CARD_ANCIENT",
+      "links": [],
+      "items": [
+        {
+          "id": "W_ANCIENT.recognise",
+          "type": "mcq",
+          "prompt": "What does **ancient** mean?",
+          "options": [
+            "wanting to know or learn about something",
+            "happy to give more money, time or help than expected",
+            "easily broken or damaged",
+            "very old; from a long time ago"
+          ],
+          "answer": "very old; from a long time ago"
+        },
+        {
+          "id": "W_ANCIENT.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The museum displayed ___ coins from the Mauryan period.",
+          "options": [
+            "ancient",
+            "humble",
+            "fragile",
+            "generous"
+          ],
+          "answer": "ancient"
+        },
+        {
+          "id": "W_ANCIENT.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *very old; from a long time ago* (starts with “a”)",
+          "answer": "ancient",
+          "accepted": [
+            "ancient"
+          ]
+        },
+        {
+          "id": "W_ANCIENT.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **ancient**.",
+          "rubric": "The sentence must use 'ancient' (or a form of it) correctly, with the meaning 'very old; from a long time ago', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "ancie"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_BRIEF": {
+      "title": "brief",
+      "level": "vocabulary",
+      "activity": "CARD_BRIEF",
+      "links": [],
+      "items": [
+        {
+          "id": "W_BRIEF.recognise",
+          "type": "mcq",
+          "prompt": "What does **brief** mean?",
+          "options": [
+            "dark or sad; without hope",
+            "unwilling and slow to do something",
+            "very old; from a long time ago",
+            "lasting only a short time; short"
+          ],
+          "answer": "lasting only a short time; short"
+        },
+        {
+          "id": "W_BRIEF.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: We had a ___ stop for tea before continuing the journey.",
+          "options": [
+            "gloomy",
+            "brief",
+            "fragile",
+            "vivid"
+          ],
+          "answer": "brief"
+        },
+        {
+          "id": "W_BRIEF.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *lasting only a short time; short* (starts with “b”)",
+          "answer": "brief",
+          "accepted": [
+            "brief"
+          ]
+        },
+        {
+          "id": "W_BRIEF.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **brief**.",
+          "rubric": "The sentence must use 'brief' (or a form of it) correctly, with the meaning 'lasting only a short time; short', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "brie"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_ENORMOUS": {
+      "title": "enormous",
+      "level": "vocabulary",
+      "activity": "CARD_ENORMOUS",
+      "links": [],
+      "items": [
+        {
+          "id": "W_ENORMOUS.recognise",
+          "type": "mcq",
+          "prompt": "What does **enormous** mean?",
+          "options": [
+            "dark or sad; without hope",
+            "happening very quickly; fast",
+            "extremely large",
+            "not proud; not thinking you are better than others"
+          ],
+          "answer": "extremely large"
+        },
+        {
+          "id": "W_ENORMOUS.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The banyan tree had an ___ trunk that five children could not circle.",
+          "options": [
+            "rapid",
+            "fragile",
+            "enormous",
+            "abundant"
+          ],
+          "answer": "enormous"
+        },
+        {
+          "id": "W_ENORMOUS.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *extremely large* (starts with “e”)",
+          "answer": "enormous",
+          "accepted": [
+            "enormous"
+          ]
+        },
+        {
+          "id": "W_ENORMOUS.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **enormous**.",
+          "rubric": "The sentence must use 'enormous' (or a form of it) correctly, with the meaning 'extremely large', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "enormo"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_RAPID": {
+      "title": "rapid",
+      "level": "vocabulary",
+      "activity": "CARD_RAPID",
+      "links": [],
+      "items": [
+        {
+          "id": "W_RAPID.recognise",
+          "type": "mcq",
+          "prompt": "What does **rapid** mean?",
+          "options": [
+            "happening very quickly; fast",
+            "very old; from a long time ago",
+            "lasting only a short time; short",
+            "happy to give more money, time or help than expected"
+          ],
+          "answer": "happening very quickly; fast"
+        },
+        {
+          "id": "W_RAPID.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The river's ___ current swept the leaves away.",
+          "options": [
+            "humble",
+            "fragile",
+            "reluctant",
+            "rapid"
+          ],
+          "answer": "rapid"
+        },
+        {
+          "id": "W_RAPID.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *happening very quickly; fast* (starts with “r”)",
+          "answer": "rapid",
+          "accepted": [
+            "rapid"
+          ]
+        },
+        {
+          "id": "W_RAPID.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **rapid**.",
+          "rubric": "The sentence must use 'rapid' (or a form of it) correctly, with the meaning 'happening very quickly; fast', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "rapi"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_VIVID": {
+      "title": "vivid",
+      "level": "vocabulary",
+      "activity": "CARD_VIVID",
+      "links": [],
+      "items": [
+        {
+          "id": "W_VIVID.recognise",
+          "type": "mcq",
+          "prompt": "What does **vivid** mean?",
+          "options": [
+            "happy to give more money, time or help than expected",
+            "wanting to know or learn about something",
+            "unwilling and slow to do something",
+            "very bright, clear or detailed"
+          ],
+          "answer": "very bright, clear or detailed"
+        },
+        {
+          "id": "W_VIVID.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The rangoli was made with ___ colours.",
+          "options": [
+            "fragile",
+            "reluctant",
+            "enormous",
+            "vivid"
+          ],
+          "answer": "vivid"
+        },
+        {
+          "id": "W_VIVID.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *very bright, clear or detailed* (starts with “v”)",
+          "answer": "vivid",
+          "accepted": [
+            "vivid"
+          ]
+        },
+        {
+          "id": "W_VIVID.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **vivid**.",
+          "rubric": "The sentence must use 'vivid' (or a form of it) correctly, with the meaning 'very bright, clear or detailed', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "vivi"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_HUMBLE": {
+      "title": "humble",
+      "level": "vocabulary",
+      "activity": "CARD_HUMBLE",
+      "links": [],
+      "items": [
+        {
+          "id": "W_HUMBLE.recognise",
+          "type": "mcq",
+          "prompt": "What does **humble** mean?",
+          "options": [
+            "unwilling and slow to do something",
+            "lasting only a short time; short",
+            "not proud; not thinking you are better than others",
+            "happening very quickly; fast"
+          ],
+          "answer": "not proud; not thinking you are better than others"
+        },
+        {
+          "id": "W_HUMBLE.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: The famous scientist was ___ and thanked her whole team.",
+          "options": [
+            "humble",
+            "curious",
+            "ancient",
+            "brief"
+          ],
+          "answer": "humble"
+        },
+        {
+          "id": "W_HUMBLE.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *not proud; not thinking you are better than others* (starts with “h”)",
+          "answer": "humble",
+          "accepted": [
+            "humble"
+          ]
+        },
+        {
+          "id": "W_HUMBLE.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **humble**.",
+          "rubric": "The sentence must use 'humble' (or a form of it) correctly, with the meaning 'not proud; not thinking you are better than others', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "humb"
+          ],
+          "min_words": 5
+        }
+      ]
+    },
+    "W_GLOOMY": {
+      "title": "gloomy",
+      "level": "vocabulary",
+      "activity": "CARD_GLOOMY",
+      "links": [],
+      "items": [
+        {
+          "id": "W_GLOOMY.recognise",
+          "type": "mcq",
+          "prompt": "What does **gloomy** mean?",
+          "options": [
+            "very bright, clear or detailed",
+            "dark or sad; without hope",
+            "wanting to know or learn about something",
+            "unwilling and slow to do something"
+          ],
+          "answer": "dark or sad; without hope"
+        },
+        {
+          "id": "W_GLOOMY.cloze",
+          "type": "mcq",
+          "prompt": "Choose the word that fits: He felt ___ after losing the match.",
+          "options": [
+            "generous",
+            "abundant",
+            "gloomy",
+            "humble"
+          ],
+          "answer": "gloomy"
+        },
+        {
+          "id": "W_GLOOMY.produce",
+          "type": "text",
+          "prompt": "Type the word that means: *dark or sad; without hope* (starts with “g”)",
+          "answer": "gloomy",
+          "accepted": [
+            "gloomy"
+          ]
+        },
+        {
+          "id": "W_GLOOMY.use",
+          "type": "free_text",
+          "prompt": "Write your own sentence using the word **gloomy**.",
+          "rubric": "The sentence must use 'gloomy' (or a form of it) correctly, with the meaning 'dark or sad; without hope', and be grammatical. Minor spelling slips elsewhere are fine.",
+          "keywords": [
+            "gloo"
+          ],
+          "min_words": 5
+        }
+      ]
+    }
+  },
+  "units": [
+    {
+      "id": "set1",
+      "title": "Word set 1",
+      "sets": [
+        "W_ABUNDANT",
+        "W_FRAGILE",
+        "W_RELUCTANT",
+        "W_CURIOUS",
+        "W_GENEROUS",
+        "W_ANCIENT",
+        "W_BRIEF",
+        "W_ENORMOUS",
+        "W_RAPID",
+        "W_VIVID",
+        "W_HUMBLE",
+        "W_GLOOMY"
+      ]
+    }
+  ]
+}
